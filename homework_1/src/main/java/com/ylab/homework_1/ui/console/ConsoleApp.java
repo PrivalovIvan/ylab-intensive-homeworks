@@ -2,8 +2,11 @@ package com.ylab.homework_1.ui.console;
 
 import com.ylab.homework_1.common.Role;
 import com.ylab.homework_1.common.TransactionType;
-import com.ylab.homework_1.domain.model.User;
-import com.ylab.homework_1.domain.service.*;
+import com.ylab.homework_1.usecase.dto.BudgetDTO;
+import com.ylab.homework_1.usecase.dto.GoalDTO;
+import com.ylab.homework_1.usecase.dto.TransactionDTO;
+import com.ylab.homework_1.usecase.dto.UserDTO;
+import com.ylab.homework_1.usecase.service.*;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +27,7 @@ public class ConsoleApp {
     private final StatisticsService statisticsService;
     private final AdministrationService administrationService;
 
-    private User currentUser;
+    private UserDTO currentUser;
     Scanner scanner = new Scanner(System.in);
 
     public void start() {
@@ -37,11 +40,16 @@ public class ConsoleApp {
                     """);
             int choice = scanner.nextInt();
             scanner.nextLine();
+            clearConsole();
             switch (choice) {
                 case 1 -> register();
                 case 2 -> {
-                    if (currentUser == null) login();
-                    else profileSettings();
+                    try {
+                        if (currentUser == null) login();
+                        else menuUser();
+                    } catch (IllegalArgumentException e) {
+                        System.out.println(e.getMessage());
+                    }
                 }
                 case 0 -> {
                     return;
@@ -58,8 +66,9 @@ public class ConsoleApp {
         String email = scanner.nextLine();
         System.out.print("Password: ");
         String password = scanner.nextLine();
+        UUID uuid = UUID.randomUUID();
         try {
-            userService.register(name, email, password, Role.USER);
+            userService.register(new UserDTO(uuid, name, email, password, Role.USER));
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
@@ -94,6 +103,7 @@ public class ConsoleApp {
 
             int choice = scanner.nextInt();
             scanner.nextLine();
+            clearConsole();
             switch (choice) {
                 case 1 -> {
                     System.out.println("Users: ");
@@ -119,7 +129,7 @@ public class ConsoleApp {
     }
 
     public void menuUser() {
-        while (true) {
+        while (currentUser != null) {
             System.out.println("""
                     ====== M E N U ======
                     1. Profile settings
@@ -133,16 +143,24 @@ public class ConsoleApp {
 
             int choice = scanner.nextInt();
             scanner.nextLine();
-            switch (choice) {
-                case 1 -> profileSettings();
-                case 2 -> financialManagement();
-                case 3 -> budgetManagement();
-                case 4 -> goalManagement();
-                case 5 -> statisticsAndAnalytics();
+            clearConsole();
+            try {
+                switch (choice) {
+                    case 1 -> profileSettings();
+                    case 2 -> financialManagement();
+                    case 3 -> budgetManagement();
+                    case 4 -> goalManagement();
+                    case 5 -> statisticsAndAnalytics();
 
-                case 0 -> {
-                    return;
+                    case 0 -> {
+                        currentUser = null;
+                        return;
+                    }
                 }
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -161,23 +179,24 @@ public class ConsoleApp {
                     """);
             int choice = scanner.nextInt();
             scanner.nextLine();
+            clearConsole();
             switch (choice) {
                 case 1 -> {
                     System.out.print("New name: ");
                     String name = scanner.nextLine();
-                    currentUser = userService.changeName(currentUser, name);
+                    currentUser = userService.updateUser(currentUser.getId(), name, null, null);
                     System.out.println("Name update successfully");
                 }
                 case 2 -> {
                     System.out.print("New email: ");
                     String email = scanner.nextLine();
-                    currentUser = userService.changeEmail(currentUser, email);
+                    currentUser = userService.updateUser(currentUser.getId(), null, email, null);
                     System.out.println("Email update successfully");
                 }
                 case 3 -> {
                     System.out.print("New password: ");
                     String password = scanner.nextLine();
-                    currentUser = userService.changePassword(currentUser, password);
+                    currentUser = userService.updateUser(currentUser.getId(), null, null, password);
                     System.out.println("Password update successfully");
                 }
                 case 4 -> {
@@ -189,13 +208,13 @@ public class ConsoleApp {
                     int delete = scanner.nextInt();
                     scanner.nextLine();
                     if (delete == 1) {
-                        userService.delete(currentUser);
+                        userService.delete(currentUser.getEmail());
                         currentUser = null;
+                        return;
                     }
                 }
-                case 5 -> System.out.println(userService.findByEmail(currentUser.getEmail()));
+                case 5 -> System.out.println(userService.findByUuid(currentUser.getId()));
                 case 0 -> {
-                    currentUser = null;
                     return;
                 }
                 default -> System.out.println("Invalid choice");
@@ -217,15 +236,22 @@ public class ConsoleApp {
                     """);
             int choice = scanner.nextInt();
             scanner.nextLine();
-            switch (choice) {
-                case 1 -> createTransaction();
-                case 2 -> updateTransaction();
-                case 3 -> deleteTransaction();
-                case 4 -> viewTransaction();
+            clearConsole();
+            try {
+                switch (choice) {
+                    case 1 -> createTransaction();
+                    case 2 -> updateTransaction();
+                    case 3 -> deleteTransaction();
+                    case 4 -> viewTransaction();
 
-                case 0 -> {
-                    return;
+                    case 0 -> {
+                        return;
+                    }
                 }
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -238,6 +264,12 @@ public class ConsoleApp {
                 """);
         int typeTransaction = scanner.nextInt();
         scanner.nextLine();
+        TransactionType type = TransactionType.values()[typeTransaction - 1];
+        String name = "";
+        if (type.equals(TransactionType.INCOME)) {
+            System.out.print("Name of the replenishment goal: ");
+            name = scanner.nextLine();
+        }
         System.out.print("Amount: ");
         BigDecimal amount = scanner.nextBigDecimal();
         scanner.nextLine();
@@ -245,19 +277,21 @@ public class ConsoleApp {
         String category = scanner.nextLine();
         System.out.print("Description: ");
         String description = scanner.nextLine();
+        UUID uuid = UUID.randomUUID();
+        LocalDate date = LocalDate.now();
 
+        TransactionDTO transactionDTO = new TransactionDTO(uuid, currentUser.getEmail(), type, amount, category, name, date, description);
 
-        transactionService.createTransaction(currentUser,
-                typeTransaction == 1 ? TransactionType.INCOME : TransactionType.EXPENSE,
-                amount,
-                category,
-                description
-        );
+        transactionService.createTransaction(transactionDTO);
+
+        if (transactionDTO.getType().equals(TransactionType.EXPENSE)) {
+            budgetService.processExpense(transactionDTO);
+        }
     }
 
     private void updateTransaction() {
         System.out.print("Id transaction: ");
-        String idTransaction = scanner.nextLine();
+        String uuid = scanner.nextLine();
         System.out.print("New Amount: ");
         BigDecimal newAmount = scanner.nextBigDecimal();
         scanner.nextLine();
@@ -268,19 +302,15 @@ public class ConsoleApp {
         System.out.print("New Description: ");
         String newDescription = scanner.nextLine();
 
-        transactionService.updateTransaction(
-                currentUser,
-                UUID.fromString(idTransaction),
-                newAmount,
-                newCategory,
-                newDescription
-        );
+        transactionService.updateAmount(currentUser.getEmail(), UUID.fromString(uuid), newAmount);
+        transactionService.updateCategory(currentUser.getEmail(), UUID.fromString(uuid), newCategory);
+        transactionService.updateDescription(currentUser.getEmail(), UUID.fromString(uuid), newDescription);
     }
 
     private void deleteTransaction() {
         System.out.print("Id transaction: ");
         String idTransaction = scanner.nextLine();
-        transactionService.deleteTransaction(UUID.fromString(idTransaction));
+        transactionService.deleteTransaction(currentUser.getEmail(), UUID.fromString(idTransaction));
     }
 
     private void viewTransaction() {
@@ -295,6 +325,7 @@ public class ConsoleApp {
                     """);
             int choice = scanner.nextInt();
             scanner.nextLine();
+            clearConsole();
             switch (choice) {
                 case 1 -> System.out.println(transactionService.findAllTransactionUser(currentUser.getEmail()));
                 case 2 -> {
@@ -331,8 +362,6 @@ public class ConsoleApp {
                 }
                 default -> System.out.println("Invalid choice");
             }
-
-
         }
     }
 
@@ -360,6 +389,7 @@ public class ConsoleApp {
                 case 0 -> {
                     return;
                 }
+                default -> System.out.println("Invalid choice");
             }
         }
     }
@@ -369,7 +399,8 @@ public class ConsoleApp {
         YearMonth yearMonth = YearMonth.parse(scanner.nextLine());
         System.out.print("Enter budget limit: ");
         BigDecimal budgetLimit = scanner.nextBigDecimal();
-        budgetService.createBudget(currentUser.getEmail(), yearMonth, budgetLimit);
+        BudgetDTO budgetDTO = new BudgetDTO(currentUser.getEmail(), yearMonth, budgetLimit, BigDecimal.ZERO);
+        budgetService.createBudget(budgetDTO);
     }
 
     private void addExpense() {
@@ -409,14 +440,23 @@ public class ConsoleApp {
 
             int choice = scanner.nextInt();
             scanner.nextLine();
-            switch (choice) {
-                case 1 -> createGoal();
-                case 2 -> viewGoal();
-                case 3 -> updateGoal();
-                case 4 -> deleteGoal();
-                case 0 -> {
-                    return;
+
+            clearConsole();
+            try {
+                switch (choice) {
+                    case 1 -> createGoal();
+                    case 2 -> viewGoal();
+                    case 3 -> updateGoal();
+                    case 4 -> deleteGoal();
+                    case 0 -> {
+                        return;
+                    }
+                    default -> System.out.println("Invalid choice");
                 }
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -426,7 +466,8 @@ public class ConsoleApp {
         String name = scanner.nextLine();
         System.out.println("Amount goal: ");
         BigDecimal amount = scanner.nextBigDecimal();
-        goalService.setGoal(currentUser.getEmail(), name, amount);
+        GoalDTO goalDTO = new GoalDTO(currentUser.getEmail(), name, amount, BigDecimal.ZERO);
+        goalService.createGoal(goalDTO);
     }
 
     private void viewGoal() {
@@ -438,7 +479,11 @@ public class ConsoleApp {
         String name = scanner.nextLine();
         System.out.println("Add amount: ");
         BigDecimal amount = scanner.nextBigDecimal();
-        goalService.updateGoalProgress(currentUser.getEmail(), name, amount);
+        scanner.nextLine();
+
+        GoalDTO goalDTO = new GoalDTO(currentUser.getEmail(), name, amount, BigDecimal.ZERO);
+
+        goalService.updateGoal(goalDTO);
     }
 
     private void deleteGoal() {
@@ -463,6 +508,7 @@ public class ConsoleApp {
 
             int choice = scanner.nextInt();
             scanner.nextLine();
+            clearConsole();
             switch (choice) {
                 case 1 -> currentBalance();
                 case 2 -> incomeForThePeriod();
@@ -519,4 +565,17 @@ public class ConsoleApp {
         System.out.println(statisticsService.generateFinancialReport(currentUser.getEmail(), dateFrom, dateTo));
     }
     //endregion
+
+    public static void clearConsole() {
+        try {
+            if (System.getProperty("os.name").contains("Windows")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка очистки консоли.");
+        }
+    }
 }

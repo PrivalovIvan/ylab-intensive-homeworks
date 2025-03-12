@@ -1,18 +1,17 @@
-package com.ylab.homework_1.domain.model;
+package com.ylab.homework_1.usecase.dto;
 
 import com.ylab.homework_1.common.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+
 @Data
-@RequiredArgsConstructor
 @AllArgsConstructor
-public class Transaction {
+public class TransactionDTO {
     private UUID uuid;
     private String email;
     private TransactionType type;

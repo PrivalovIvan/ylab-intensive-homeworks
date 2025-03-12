@@ -4,9 +4,12 @@ import com.ylab.homework_1.common.Role;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @RequiredArgsConstructor
 public class User {
+    private final UUID id;
     private final String name;
     private final String email;
     private final String password;
