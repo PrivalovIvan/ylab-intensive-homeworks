@@ -12,8 +12,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
-
 public class TransactionDBMapperImplTest {
     private TransactionDBMapperImpl mapper;
 
@@ -29,20 +27,20 @@ public class TransactionDBMapperImplTest {
 
         Optional<Transaction> result = mapper.toTransaction(transactionDB);
 
-        assertThat(result).isPresent();
+        Assertions.assertThat(result).isPresent();
         Transaction transaction = result.get();
-        assertThat(transaction.getEmail()).isEqualTo("user@example.com");
-        assertThat(transaction.getType()).isEqualTo(TransactionType.EXPENSE);
-        assertThat(transaction.getAmount()).isEqualTo(BigDecimal.valueOf(300));
-        assertThat(transaction.getCategory()).isEqualTo("Food");
-        assertThat(transaction.getDescription()).isEqualTo("Groceries");
+        Assertions.assertThat(transaction.getEmail()).isEqualTo("user@example.com");
+        Assertions.assertThat(transaction.getType()).isEqualTo(TransactionType.EXPENSE);
+        Assertions.assertThat(transaction.getAmount()).isEqualTo(BigDecimal.valueOf(300));
+        Assertions.assertThat(transaction.getCategory()).isEqualTo("Food");
+        Assertions.assertThat(transaction.getDescription()).isEqualTo("Groceries");
     }
 
     @Test
     void toTransaction_returnsEmptyForNull() {
         Optional<Transaction> result = mapper.toTransaction(null);
 
-        assertThat(result).isEmpty();
+        Assertions.assertThat(result).isEmpty();
     }
 
     @Test
@@ -62,21 +60,21 @@ public class TransactionDBMapperImplTest {
 
         Optional<TransactionDB> result = mapper.toTransactionDB(transaction);
 
-        assertThat(result).isPresent();
+        Assertions.assertThat(result).isPresent();
         TransactionDB transactionDB = result.get();
-        assertThat(transactionDB.getUuid()).isEqualTo(uuid);
-        assertThat(transactionDB.getEmail()).isEqualTo("user@example.com");
-        assertThat(transactionDB.getType()).isEqualTo(TransactionType.INCOME);
-        assertThat(transactionDB.getAmount()).isEqualTo(BigDecimal.valueOf(1000));
-        assertThat(transactionDB.getCategory()).isEqualTo("Salary");
-        assertThat(transactionDB.getDate()).isEqualTo(LocalDate.of(2025, 3, 5));
-        assertThat(transactionDB.getDescription()).isEqualTo("Monthly");
+        Assertions.assertThat(transactionDB.getUuid()).isEqualTo(uuid);
+        Assertions.assertThat(transactionDB.getEmail()).isEqualTo("user@example.com");
+        Assertions.assertThat(transactionDB.getType()).isEqualTo(TransactionType.INCOME);
+        Assertions.assertThat(transactionDB.getAmount()).isEqualTo(BigDecimal.valueOf(1000));
+        Assertions.assertThat(transactionDB.getCategory()).isEqualTo("Salary");
+        Assertions.assertThat(transactionDB.getDate()).isEqualTo(LocalDate.of(2025, 3, 5));
+        Assertions.assertThat(transactionDB.getDescription()).isEqualTo("Monthly");
     }
 
     @Test
     void toTransactionDB_returnsEmptyForNull() {
         Optional<TransactionDB> result = mapper.toTransactionDB(null);
 
-        assertThat(result).isEmpty();
+        Assertions.assertThat(result).isEmpty();
     }
 }

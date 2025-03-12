@@ -1,6 +1,5 @@
 package com.ylab.homework_1;
 
-import com.ylab.homework_1.infrastructure.service.GoalServiceImpl;
 import com.ylab.homework_1.domain.model.Goal;
 import com.ylab.homework_1.domain.repository.GoalRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,16 +10,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
-
 class GoalServiceImplTest {
     private GoalRepository goalRepository;
     private GoalServiceImpl goalService;
 
     @BeforeEach
     void setUp() {
-        goalRepository = mock(GoalRepository.class);
+        goalRepository = Mockito.mock(GoalRepository.class);
         goalService = new GoalServiceImpl(goalRepository);
     }
 
@@ -33,12 +29,12 @@ class GoalServiceImplTest {
         goalService.setGoal(email, name, targetAmount);
 
         ArgumentCaptor<Goal> goalCaptor = ArgumentCaptor.forClass(Goal.class);
-        verify(goalRepository).save(goalCaptor.capture());
+        Mockito.verify(goalRepository).save(goalCaptor.capture());
         Goal savedGoal = goalCaptor.getValue();
-        assertThat(savedGoal.getEmail()).isEqualTo(email);
-        assertThat(savedGoal.getTitle()).isEqualTo(name);
-        assertThat(savedGoal.getTargetAmount()).isEqualTo(targetAmount);
-        assertThat(savedGoal.getSavedAmount()).isEqualTo(BigDecimal.ZERO);
+        Assertions.assertThat(savedGoal.getEmail()).isEqualTo(email);
+        Assertions.assertThat(savedGoal.getTitle()).isEqualTo(name);
+        Assertions.assertThat(savedGoal.getTargetAmount()).isEqualTo(targetAmount);
+        Assertions.assertThat(savedGoal.getSavedAmount()).isEqualTo(BigDecimal.ZERO);
     }
 
     @Test
@@ -48,22 +44,22 @@ class GoalServiceImplTest {
                 new Goal(email, "Vacation", BigDecimal.valueOf(1000), BigDecimal.valueOf(500)),
                 new Goal(email, "Car", BigDecimal.valueOf(5000), BigDecimal.valueOf(2000))
         );
-        when(goalRepository.findAllByUser(email)).thenReturn(goals);
+        Mockito.when(goalRepository.findAllByUser(email)).thenReturn(goals);
 
         List<Goal> result = goalService.getUserGoals(email);
 
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactlyElementsOf(goals);
+        Assertions.assertThat(result).hasSize(2);
+        Assertions.assertThat(result).containsExactlyElementsOf(goals);
     }
 
     @Test
     void getUserGoals_returnsEmptyListIfNoGoals() {
         String email = "user@example.com";
-        when(goalRepository.findAllByUser(email)).thenReturn(List.of());
+        Mockito.when(goalRepository.findAllByUser(email)).thenReturn(List.of());
 
         List<Goal> result = goalService.getUserGoals(email);
 
-        assertThat(result).isEmpty();
+        Assertions.assertThat(result).isEmpty();
     }
 
     @Test
@@ -71,26 +67,26 @@ class GoalServiceImplTest {
         String email = "user@example.com";
         String name = "Vacation";
         Goal goal = new Goal(email, name, BigDecimal.valueOf(1000), BigDecimal.valueOf(800));
-        when(goalRepository.findByName(email, name)).thenReturn(Optional.of(goal));
+        Mockito.when(goalRepository.findByName(email, name)).thenReturn(Optional.of(goal));
 
         goalService.updateGoalProgress(email, name, BigDecimal.valueOf(300));
 
         ArgumentCaptor<Goal> goalCaptor = ArgumentCaptor.forClass(Goal.class);
-        verify(goalRepository).updateProgress(eq(email), eq(name), goalCaptor.capture());
+        Mockito.verify(goalRepository).updateProgress(ArgumentMatchers.eq(email), ArgumentMatchers.eq(name), goalCaptor.capture());
         Goal updatedGoal = goalCaptor.getValue();
-        assertThat(updatedGoal.getSavedAmount()).isEqualTo(BigDecimal.valueOf(1100)); // 800 + 300
-        assertThat(updatedGoal.isAchieved()).isTrue();
+        Assertions.assertThat(updatedGoal.getSavedAmount()).isEqualTo(BigDecimal.valueOf(1100)); // 800 + 300
+        Assertions.assertThat(updatedGoal.isAchieved()).isTrue();
     }
 
     @Test
     void updateGoalProgress_doesNothingIfGoalNotFound() {
         String email = "user@example.com";
         String name = "Vacation";
-        when(goalRepository.findByName(email, name)).thenReturn(Optional.empty());
+        Mockito.when(goalRepository.findByName(email, name)).thenReturn(Optional.empty());
 
         goalService.updateGoalProgress(email, name, BigDecimal.valueOf(200));
 
-        verify(goalRepository, never()).updateProgress(anyString(), anyString(), any(Goal.class));
+        Mockito.verify(goalRepository, Mockito.never()).updateProgress(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(Goal.class));
     }
 
     @Test
@@ -98,15 +94,15 @@ class GoalServiceImplTest {
         String email = "user@example.com";
         String name = "Car";
         Goal goal = new Goal(email, name, BigDecimal.valueOf(5000), BigDecimal.valueOf(2000));
-        when(goalRepository.findByName(email, name)).thenReturn(Optional.of(goal));
+        Mockito.when(goalRepository.findByName(email, name)).thenReturn(Optional.of(goal));
 
         goalService.updateGoalProgress(email, name, BigDecimal.valueOf(1000));
 
         ArgumentCaptor<Goal> goalCaptor = ArgumentCaptor.forClass(Goal.class);
-        verify(goalRepository).updateProgress(eq(email), eq(name), goalCaptor.capture());
+        Mockito.verify(goalRepository).updateProgress(ArgumentMatchers.eq(email), ArgumentMatchers.eq(name), goalCaptor.capture());
         Goal updatedGoal = goalCaptor.getValue();
-        assertThat(updatedGoal.getSavedAmount()).isEqualTo(BigDecimal.valueOf(3000)); // 2000 + 1000
-        assertThat(updatedGoal.isAchieved()).isFalse();
+        Assertions.assertThat(updatedGoal.getSavedAmount()).isEqualTo(BigDecimal.valueOf(3000)); // 2000 + 1000
+        Assertions.assertThat(updatedGoal.isAchieved()).isFalse();
     }
 
     @Test
@@ -116,6 +112,6 @@ class GoalServiceImplTest {
 
         goalService.deleteGoal(email, name);
 
-        verify(goalRepository).delete(email, name);
+        Mockito.verify(goalRepository).delete(email, name);
     }
 }

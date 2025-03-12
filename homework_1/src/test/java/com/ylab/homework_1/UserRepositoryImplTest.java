@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
-
 class UserRepositoryImplTest {
     private UserRepository userRepository;
     private UserDBMapper userDBMapper;
@@ -29,8 +27,8 @@ class UserRepositoryImplTest {
         userRepository.create(user);
 
         Optional<User> foundUser = userRepository.findByEmail("john@example.com");
-        assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getEmail()).isEqualTo("john@example.com");
+        Assertions.assertThat(foundUser).isPresent();
+        Assertions.assertThat(foundUser.get().getEmail()).isEqualTo("john@example.com");
     }
 
     @Test
@@ -38,7 +36,7 @@ class UserRepositoryImplTest {
         User user = new User("John Doe", "john@example.com", "password", Role.USER);
         userRepository.create(user);
 
-        assertThatThrownBy(() -> userRepository.create(user))
+        Assertions.assertThatThrownBy(() -> userRepository.create(user))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("User already exists");
     }
@@ -49,8 +47,8 @@ class UserRepositoryImplTest {
         userRepository.create(user);
 
         Optional<User> foundUser = userRepository.findByEmail("john@example.com");
-        assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getName()).isEqualTo("John Doe");
+        Assertions.assertThat(foundUser).isPresent();
+        Assertions.assertThat(foundUser.get().getName()).isEqualTo("John Doe");
     }
 
     @Test
@@ -59,7 +57,7 @@ class UserRepositoryImplTest {
         userRepository.create(user);
 
         userRepository.delete("john@example.com");
-        assertThat(userRepository.findByEmail("john@example.com")).isEmpty();
+        Assertions.assertThat(userRepository.findByEmail("john@example.com")).isEmpty();
     }
 
     @Test
@@ -69,8 +67,8 @@ class UserRepositoryImplTest {
 
         Optional<User> updatedUser = userRepository.update(user, "Jane Doe", "jane@example.com", "newpass");
 
-        assertThat(updatedUser).isPresent();
-        assertThat(updatedUser.get().getEmail()).isEqualTo("jane@example.com");
-        assertThat(userRepository.findByEmail("john@example.com")).isEmpty();
+        Assertions.assertThat(updatedUser).isPresent();
+        Assertions.assertThat(updatedUser.get().getEmail()).isEqualTo("jane@example.com");
+        Assertions.assertThat(userRepository.findByEmail("john@example.com")).isEmpty();
     }
 }

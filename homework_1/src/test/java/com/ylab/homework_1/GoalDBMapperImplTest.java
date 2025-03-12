@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
-
 class GoalDBMapperImplTest {
     private GoalDBMapperImpl mapper;
 
@@ -25,19 +23,19 @@ class GoalDBMapperImplTest {
 
         Optional<Goal> result = mapper.toGoal(goalDB);
 
-        assertThat(result).isPresent();
+        Assertions.assertThat(result).isPresent();
         Goal goal = result.get();
-        assertThat(goal.getEmail()).isEqualTo("user@example.com");
-        assertThat(goal.getTitle()).isEqualTo("Vacation");
-        assertThat(goal.getTargetAmount()).isEqualTo(BigDecimal.valueOf(1000));
-        assertThat(goal.getSavedAmount()).isEqualTo(BigDecimal.valueOf(500));
+        Assertions.assertThat(goal.getEmail()).isEqualTo("user@example.com");
+        Assertions.assertThat(goal.getTitle()).isEqualTo("Vacation");
+        Assertions.assertThat(goal.getTargetAmount()).isEqualTo(BigDecimal.valueOf(1000));
+        Assertions.assertThat(goal.getSavedAmount()).isEqualTo(BigDecimal.valueOf(500));
     }
 
     @Test
     void toGoal_returnsEmptyForNull() {
         Optional<Goal> result = mapper.toGoal(null);
 
-        assertThat(result).isEmpty();
+        Assertions.assertThat(result).isEmpty();
     }
 
     @Test
@@ -46,18 +44,18 @@ class GoalDBMapperImplTest {
 
         Optional<GoalDB> result = mapper.toGoalDB(goal);
 
-        assertThat(result).isPresent();
+        Assertions.assertThat(result).isPresent();
         GoalDB goalDB = result.get();
-        assertThat(goalDB.getEmail()).isEqualTo("user@example.com");
-        assertThat(goalDB.getTitle()).isEqualTo("Vacation");
-        assertThat(goalDB.getTargetAmount()).isEqualTo(BigDecimal.valueOf(1000));
-        assertThat(goalDB.getSavedAmount()).isEqualTo(BigDecimal.valueOf(500));
+        Assertions.assertThat(goalDB.getEmail()).isEqualTo("user@example.com");
+        Assertions.assertThat(goalDB.getTitle()).isEqualTo("Vacation");
+        Assertions.assertThat(goalDB.getTargetAmount()).isEqualTo(BigDecimal.valueOf(1000));
+        Assertions.assertThat(goalDB.getSavedAmount()).isEqualTo(BigDecimal.valueOf(500));
     }
 
     @Test
     void toGoalDB_returnsEmptyForNull() {
         Optional<GoalDB> result = mapper.toGoalDB(null);
 
-        assertThat(result).isEmpty();
+        Assertions.assertThat(result).isEmpty();
     }
 }

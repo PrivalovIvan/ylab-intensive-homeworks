@@ -14,16 +14,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
-
 class TransactionRepositoryImplTest {
     private TransactionDBMapper transactionDBMapper;
     private TransactionRepositoryImpl repository;
 
     @BeforeEach
     void setUp() {
-        transactionDBMapper = mock(TransactionDBMapper.class);
+        transactionDBMapper = Mockito.mock(TransactionDBMapper.class);
         repository = new TransactionRepositoryImpl(transactionDBMapper);
     }
 
@@ -32,28 +29,28 @@ class TransactionRepositoryImplTest {
         TransactionDB transactionDB = new TransactionDB(UUID.randomUUID(), "user@example.com", TransactionType.INCOME, BigDecimal.valueOf(1000), "Salary", LocalDate.now(), "Monthly");
         Transaction transaction = new Transaction("user@example.com", TransactionType.INCOME, BigDecimal.valueOf(1000), "Salary", "Monthly");
         repository.getTransactions().put(transactionDB.getUuid(), transactionDB);
-        when(transactionDBMapper.toTransaction(transactionDB)).thenReturn(Optional.of(transaction));
+        Mockito.when(transactionDBMapper.toTransaction(transactionDB)).thenReturn(Optional.of(transaction));
 
         List<Transaction> result = repository.findAll(transaction);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(transaction);
+        Assertions.assertThat(result).hasSize(1);
+        Assertions.assertThat(result.get(0)).isEqualTo(transaction);
     }
 
     @Test
     void create_addsTransaction() {
         Transaction transaction = new Transaction("user@example.com", TransactionType.EXPENSE, BigDecimal.valueOf(300), "Food", "Groceries");
         TransactionDB transactionDB = new TransactionDB(transaction.getUuid(), "user@example.com", TransactionType.EXPENSE, BigDecimal.valueOf(300), "Food", transaction.getDate(), "Groceries");
-        when(transactionDBMapper.toTransactionDB(transaction)).thenReturn(Optional.of(transactionDB));
+        Mockito.when(transactionDBMapper.toTransactionDB(transaction)).thenReturn(Optional.of(transactionDB));
 
         repository.create(transaction);
 
-        assertThat(repository.getTransactions()).containsKey(transaction.getUuid());
+        Assertions.assertThat(repository.getTransactions()).containsKey(transaction.getUuid());
     }
 
     @Test
     void findAll_throwsExceptionForNull() {
-        assertThatThrownBy(() -> repository.findAll(null))
+        Assertions.assertThatThrownBy(() -> repository.findAll(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("transaction cannot be null");
     }
@@ -63,12 +60,12 @@ class TransactionRepositoryImplTest {
         Transaction transaction = new Transaction("user@example.com", TransactionType.INCOME, BigDecimal.valueOf(1000), "Salary", "Monthly");
         TransactionDB transactionDB = new TransactionDB(transaction.getUuid(), "user@example.com", TransactionType.INCOME, BigDecimal.valueOf(1000), "Salary", transaction.getDate(), "Monthly");
         repository.getTransactions().put(transactionDB.getUuid(), transactionDB);
-        when(transactionDBMapper.toTransaction(transactionDB)).thenReturn(Optional.of(transaction));
+        Mockito.when(transactionDBMapper.toTransaction(transactionDB)).thenReturn(Optional.of(transaction));
 
         List<Transaction> result = repository.findAll(transaction);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(transaction);
+        Assertions.assertThat(result).hasSize(1);
+        Assertions.assertThat(result.get(0)).isEqualTo(transaction);
     }
 
     @Test
@@ -78,13 +75,13 @@ class TransactionRepositoryImplTest {
         Transaction transaction1 = new Transaction("user@example.com", TransactionType.EXPENSE, BigDecimal.valueOf(300), "Food", "Groceries");
         repository.getTransactions().put(transactionDB1.getUuid(), transactionDB1);
         repository.getTransactions().put(transactionDB2.getUuid(), transactionDB2);
-        when(transactionDBMapper.toTransaction(transactionDB1)).thenReturn(Optional.of(transaction1));
-        when(transactionDBMapper.toTransaction(transactionDB2)).thenReturn(Optional.empty());
+        Mockito.when(transactionDBMapper.toTransaction(transactionDB1)).thenReturn(Optional.of(transaction1));
+        Mockito.when(transactionDBMapper.toTransaction(transactionDB2)).thenReturn(Optional.empty());
 
         List<Transaction> result = repository.findByUserEmail("user@example.com");
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getEmail()).isEqualTo("user@example.com");
+        Assertions.assertThat(result).hasSize(1);
+        Assertions.assertThat(result.get(0).getEmail()).isEqualTo("user@example.com");
     }
 
     @Test
@@ -98,12 +95,12 @@ class TransactionRepositoryImplTest {
             }
         };
         repository.getTransactions().put(uuid, transactionDB);
-        when(transactionDBMapper.toTransaction(transactionDB)).thenReturn(Optional.of(transaction));
+        Mockito.when(transactionDBMapper.toTransaction(transactionDB)).thenReturn(Optional.of(transaction));
 
         List<Transaction> result = repository.findByUUID(uuid);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getUuid()).isEqualTo(uuid);
+        Assertions.assertThat(result).hasSize(1);
+        Assertions.assertThat(result.get(0).getUuid()).isEqualTo(uuid);
     }
 
     @Test
@@ -115,9 +112,9 @@ class TransactionRepositoryImplTest {
         repository.update(uuid, BigDecimal.valueOf(500), "Transport", "Taxi");
 
         TransactionDB updated = repository.getTransactions().get(uuid);
-        assertThat(updated.getAmount()).isEqualTo(BigDecimal.valueOf(500));
-        assertThat(updated.getCategory()).isEqualTo("Transport");
-        assertThat(updated.getDescription()).isEqualTo("Taxi");
+        Assertions.assertThat(updated.getAmount()).isEqualTo(BigDecimal.valueOf(500));
+        Assertions.assertThat(updated.getCategory()).isEqualTo("Transport");
+        Assertions.assertThat(updated.getDescription()).isEqualTo("Taxi");
     }
 
     @Test
@@ -126,7 +123,7 @@ class TransactionRepositoryImplTest {
 
         repository.update(uuid, BigDecimal.valueOf(500), "Transport", "Taxi");
 
-        assertThat(repository.getTransactions()).doesNotContainKey(uuid);
+        Assertions.assertThat(repository.getTransactions()).doesNotContainKey(uuid);
     }
 
     @Test
@@ -137,7 +134,7 @@ class TransactionRepositoryImplTest {
 
         repository.delete(uuid);
 
-        assertThat(repository.getTransactions()).doesNotContainKey(uuid);
+        Assertions.assertThat(repository.getTransactions()).doesNotContainKey(uuid);
     }
 
     @Test
@@ -148,12 +145,12 @@ class TransactionRepositoryImplTest {
         Transaction transaction1 = new Transaction("user@example.com", TransactionType.EXPENSE, BigDecimal.valueOf(300), "Food", "Groceries");
         repository.getTransactions().put(transactionDB1.getUuid(), transactionDB1);
         repository.getTransactions().put(transactionDB2.getUuid(), transactionDB2);
-        when(transactionDBMapper.toTransaction(transactionDB1)).thenReturn(Optional.of(transaction1));
+        Mockito.when(transactionDBMapper.toTransaction(transactionDB1)).thenReturn(Optional.of(transaction1));
 
         List<Transaction> result = repository.findByUserEmailFilterDate("user@example.com", date);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getDate()).isEqualTo(date);
+        Assertions.assertThat(result).hasSize(1);
+        Assertions.assertThat(result.get(0).getDate()).isEqualTo(date);
     }
 
     @Test
@@ -163,12 +160,12 @@ class TransactionRepositoryImplTest {
         Transaction transaction1 = new Transaction("user@example.com", TransactionType.EXPENSE, BigDecimal.valueOf(300), "Food", "Groceries");
         repository.getTransactions().put(transactionDB1.getUuid(), transactionDB1);
         repository.getTransactions().put(transactionDB2.getUuid(), transactionDB2);
-        when(transactionDBMapper.toTransaction(transactionDB1)).thenReturn(Optional.of(transaction1));
+        Mockito.when(transactionDBMapper.toTransaction(transactionDB1)).thenReturn(Optional.of(transaction1));
 
         List<Transaction> result = repository.findByUserEmailFilterCategory("user@example.com", "Food");
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getCategory()).isEqualTo("Food");
+        Assertions.assertThat(result).hasSize(1);
+        Assertions.assertThat(result.get(0).getCategory()).isEqualTo("Food");
     }
     @Test
     void findByUserEmailFilterType_filtersByEmailAndType() {
@@ -177,11 +174,11 @@ class TransactionRepositoryImplTest {
         Transaction transaction2 = new Transaction("user@example.com", TransactionType.INCOME, BigDecimal.valueOf(1000), "Salary", "Monthly");
         repository.getTransactions().put(transactionDB1.getUuid(), transactionDB1);
         repository.getTransactions().put(transactionDB2.getUuid(), transactionDB2);
-        when(transactionDBMapper.toTransaction(transactionDB2)).thenReturn(Optional.of(transaction2));
+        Mockito.when(transactionDBMapper.toTransaction(transactionDB2)).thenReturn(Optional.of(transaction2));
 
         List<Transaction> result = repository.findByUserEmailFilterType("user@example.com", TransactionType.INCOME);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getType()).isEqualTo(TransactionType.INCOME);
+        Assertions.assertThat(result).hasSize(1);
+        Assertions.assertThat(result.get(0).getType()).isEqualTo(TransactionType.INCOME);
     }
 }

@@ -13,9 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
@@ -34,51 +31,51 @@ class UserServiceImplTest {
 
     @Test
     void shouldRegisterUserSuccessfully() {
-        doNothing().when(userRepository).create(user);
+        Mockito.doNothing().when(userRepository).create(user);
         userService.register(user.getName(), user.getEmail(), user.getPassword(), user.getRole());
-        verify(userRepository, times(1)).create(user);
+        Mockito.verify(userRepository, Mockito.times(1)).create(user);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsNullOnRegister() {
-        assertThatThrownBy(() -> userService.register("John", null, "password", Role.USER))
+        Assertions.assertThatThrownBy(() -> userService.register("John", null, "password", Role.USER))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("email is required");
     }
 
     @Test
     void shouldLoginSuccessfully() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         User loggedInUser = userService.login(user.getEmail(), user.getPassword());
-        assertThat(loggedInUser).isEqualTo(user);
+        Assertions.assertThat(loggedInUser).isEqualTo(user);
     }
 
     @Test
     void shouldThrowExceptionWhenInvalidCredentials() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> userService.login(user.getEmail(), "wrongPassword"))
+        Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
+        Assertions.assertThatThrownBy(() -> userService.login(user.getEmail(), "wrongPassword"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid email or password");
     }
 
     @Test
     void shouldDeleteUserByEmail() {
-        doNothing().when(userRepository).delete(user.getEmail());
+        Mockito.doNothing().when(userRepository).delete(user.getEmail());
         userService.delete(user.getEmail());
-        verify(userRepository, times(1)).delete(user.getEmail());
+        Mockito.verify(userRepository, Mockito.times(1)).delete(user.getEmail());
     }
 
     @Test
     void shouldFindUserByEmail() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         User foundUser = userService.findByEmail(user.getEmail());
-        assertThat(foundUser).isEqualTo(user);
+        Assertions.assertThat(foundUser).isEqualTo(user);
     }
 
     @Test
     void shouldThrowExceptionIfUserNotFound() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> userService.findByEmail(user.getEmail()))
+        Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
+        Assertions.assertThatThrownBy(() -> userService.findByEmail(user.getEmail()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Email not found");
     }

@@ -21,15 +21,15 @@ class UserMapperTest {
     void toUser_shouldMapUserDBToUser() {
         UserDB userDB = new UserDB("Alice", "alice@example.com", "password", Role.USER);
         Optional<User> user = userDBMapper.toUser(userDB);
-        assertThat(user).isPresent();
-        assertThat(user.get()).isEqualTo(new User("Alice", "alice@example.com", "password", Role.USER));
+        AssertionsForClassTypes.assertThat(user).isPresent();
+        AssertionsForClassTypes.assertThat(user.get()).isEqualTo(new User("Alice", "alice@example.com", "password", Role.USER));
     }
 
     @Test
     void toUserDB_shouldMapUserToUserDB() {
         User user = new User("Bob", "bob@example.com", "pass123", Role.ADMIN);
         Optional<UserDB> userDB = userDBMapper.toUserDB(user);
-        assertThat(userDB).isPresent();
-        assertThat(userDB.get()).isEqualTo(new UserDB("Bob", "bob@example.com", "pass123", Role.ADMIN));
+        AssertionsForClassTypes.assertThat(userDB).isPresent();
+        AssertionsForClassTypes.assertThat(userDB.get()).isEqualTo(new UserDB("Bob", "bob@example.com", "pass123", Role.ADMIN));
     }
 }

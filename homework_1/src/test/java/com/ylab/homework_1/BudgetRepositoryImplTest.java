@@ -11,16 +11,13 @@ import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.Optional;
 
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
-
 class BudgetRepositoryImplTest {
     private BudgetDBMapper budgetDBMapper;
     private BudgetRepositoryImpl budgetRepository;
 
     @BeforeEach
     void setUp() {
-        budgetDBMapper = mock(BudgetDBMapper.class);
+        budgetDBMapper = Mockito.mock(BudgetDBMapper.class);
         budgetRepository = new BudgetRepositoryImpl(budgetDBMapper);
     }
 
@@ -28,47 +25,47 @@ class BudgetRepositoryImplTest {
     void save_addsNewBudget() {
         Budget budget = new Budget("user@example.com", YearMonth.of(2025, 3), BigDecimal.valueOf(1000), BigDecimal.ZERO);
         BudgetDB budgetDB = new BudgetDB("user@example.com", YearMonth.of(2025, 3), BigDecimal.valueOf(1000), BigDecimal.ZERO);
-        when(budgetDBMapper.toBudgetDB(budget)).thenReturn(Optional.of(budgetDB));
-        when(budgetDBMapper.toBudget(budgetDB)).thenReturn(Optional.of(budget));
+        Mockito.when(budgetDBMapper.toBudgetDB(budget)).thenReturn(Optional.of(budgetDB));
+        Mockito.when(budgetDBMapper.toBudget(budgetDB)).thenReturn(Optional.of(budget));
 
         budgetRepository.save(budget);
 
         Optional<Budget> savedBudget = budgetRepository.findByUserAndMonth("user@example.com", YearMonth.of(2025, 3));
-        assertThat(savedBudget).isPresent();
-        assertThat(savedBudget.get().getBudget()).isEqualTo(BigDecimal.valueOf(1000));
+        Assertions.assertThat(savedBudget).isPresent();
+        Assertions.assertThat(savedBudget.get().getBudget()).isEqualTo(BigDecimal.valueOf(1000));
     }
 
     @Test
     void findByUserAndMonth_returnsBudgetIfExists() {
         Budget budget = new Budget("user@example.com", YearMonth.of(2025, 3), BigDecimal.valueOf(1000), BigDecimal.valueOf(200));
         BudgetDB budgetDB = new BudgetDB("user@example.com", YearMonth.of(2025, 3), BigDecimal.valueOf(1000), BigDecimal.valueOf(200));
-        when(budgetDBMapper.toBudgetDB(budget)).thenReturn(Optional.of(budgetDB));
-        when(budgetDBMapper.toBudget(budgetDB)).thenReturn(Optional.of(budget));
+        Mockito.when(budgetDBMapper.toBudgetDB(budget)).thenReturn(Optional.of(budgetDB));
+        Mockito.when(budgetDBMapper.toBudget(budgetDB)).thenReturn(Optional.of(budget));
         budgetRepository.save(budget);
 
         Optional<Budget> result = budgetRepository.findByUserAndMonth("user@example.com", YearMonth.of(2025, 3));
 
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(budget);
+        Assertions.assertThat(result).isPresent();
+        Assertions.assertThat(result.get()).isEqualTo(budget);
     }
 
     @Test
     void findByUserAndMonth_returnsEmptyIfNotFound() {
         Optional<Budget> result = budgetRepository.findByUserAndMonth("user@example.com", YearMonth.of(2025, 3));
 
-        assertThat(result).isEmpty();
+        Assertions.assertThat(result).isEmpty();
     }
 
     @Test
     void delete_removesBudget() {
         Budget budget = new Budget("user@example.com", YearMonth.of(2025, 3), BigDecimal.valueOf(1000), BigDecimal.ZERO);
         BudgetDB budgetDB = new BudgetDB("user@example.com", YearMonth.of(2025, 3), BigDecimal.valueOf(1000), BigDecimal.ZERO);
-        when(budgetDBMapper.toBudgetDB(budget)).thenReturn(Optional.of(budgetDB));
+        Mockito.when(budgetDBMapper.toBudgetDB(budget)).thenReturn(Optional.of(budgetDB));
         budgetRepository.save(budget);
 
         budgetRepository.delete("user@example.com", YearMonth.of(2025, 3));
 
         Optional<Budget> result = budgetRepository.findByUserAndMonth("user@example.com", YearMonth.of(2025, 3));
-        assertThat(result).isEmpty();
+        Assertions.assertThat(result).isEmpty();
     }
 }
