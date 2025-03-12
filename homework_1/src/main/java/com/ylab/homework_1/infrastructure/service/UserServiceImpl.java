@@ -1,8 +1,8 @@
 package com.ylab.homework_1.infrastructure.service;
 
 import com.ylab.homework_1.domain.model.User;
+import com.ylab.homework_1.infrastructure.mapper.UserMapper;
 import com.ylab.homework_1.usecase.dto.UserDTO;
-import com.ylab.homework_1.usecase.mapper.UserMapper;
 import com.ylab.homework_1.usecase.repository.UserRepository;
 import com.ylab.homework_1.usecase.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +13,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
 
     @Override
     public void register(UserDTO userDTO) {
         User user = userRepository.getByEmail(userDTO.getEmail()).orElse(null);
         if (user == null) {
-            userRepository.save(userMapper.toUser(userDTO));
+            userRepository.save(UserMapper.toUser.apply(userDTO));
         } else {
             throw new IllegalArgumentException("User already exists");
         }
@@ -33,7 +32,7 @@ public class UserServiceImpl implements UserService {
         if (!user.getPassword().equals(password)) {
             throw new IllegalArgumentException("Invalid password");
         }
-        return userMapper.toUserDTO(user);
+        return UserMapper.toUserDTO.apply(user);
     }
 
     @Override
@@ -48,7 +47,7 @@ public class UserServiceImpl implements UserService {
         String password = newPassword != null ? newPassword : user.getPassword();
 
         UserDTO updatedUser = new UserDTO(userId, name, email, password, user.getRole());
-        userRepository.save(userMapper.toUser(updatedUser));
+        userRepository.save(UserMapper.toUser.apply(updatedUser));
         return updatedUser;
     }
 
@@ -59,18 +58,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO findByEmail(String email) {
-        return userMapper.toUserDTO(userRepository.getByEmail(email).orElseThrow(() ->
+        return UserMapper.toUserDTO.apply(userRepository.getByEmail(email).orElseThrow(() ->
                 new IllegalArgumentException("Email: " + email + " not found")));
     }
 
     @Override
     public UserDTO findByUuid(UUID uuid) {
-        return userMapper.toUserDTO(userRepository.getById(uuid).orElseThrow(() ->
+        return UserMapper.toUserDTO.apply(userRepository.getById(uuid).orElseThrow(() ->
                 new IllegalArgumentException("UUID: " + uuid + " not found")));
     }
 
     @Override
     public List<UserDTO> findAll() {
-        return userRepository.getAll().stream().map(userMapper::toUserDTO).toList();
+        return userRepository.getAll().stream().map(UserMapper.toUserDTO::apply).toList();
     }
 }

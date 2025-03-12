@@ -14,10 +14,10 @@ import java.util.UUID;
 public class Homework1Application {
     public static void main(String[] args) {
         NotificationService notificationService = new NotificationServiceImpl();
-        UserService userService = new UserServiceImpl(new UserRepositoryImpl(), new UserMapperImpl());
-        BudgetService budgetService = new BudgetServiceImpl(new BudgetRepositoryImpl(), new BudgetMapperImpl(), notificationService);
-        GoalService goalService = new GoalServiceImpl(new GoalRepositoryImpl(), new GoalMapperImpl(), notificationService);
-        TransactionService transactionService = new TransactionServiceImpl(new TransactionRepositoryImpl(), new TransactionMapperImpl());
+        UserService userService = new UserServiceImpl(new UserRepositoryImpl());
+        BudgetService budgetService = new BudgetServiceImpl(new BudgetRepositoryImpl(), notificationService);
+        GoalService goalService = new GoalServiceImpl(new GoalRepositoryImpl(), notificationService);
+        TransactionService transactionService = new TransactionServiceImpl(new TransactionRepositoryImpl());
         StatisticsService statisticsService = new StatisticsServiceImpl(transactionService);
         AdministrationService administrationService = new AdministrationServiceImpl(userService, transactionService);
         ConsoleApp app = new ConsoleApp(userService, transactionService, budgetService, goalService, statisticsService, administrationService);

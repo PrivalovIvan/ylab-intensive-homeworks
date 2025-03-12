@@ -1,9 +1,9 @@
 package com.ylab.homework_1.infrastructure.service;
 
 import com.ylab.homework_1.domain.model.Budget;
+import com.ylab.homework_1.infrastructure.mapper.BudgetMapper;
 import com.ylab.homework_1.usecase.dto.BudgetDTO;
 import com.ylab.homework_1.usecase.dto.TransactionDTO;
-import com.ylab.homework_1.usecase.mapper.BudgetMapper;
 import com.ylab.homework_1.usecase.repository.BudgetRepository;
 import com.ylab.homework_1.usecase.service.BudgetService;
 import com.ylab.homework_1.usecase.service.NotificationService;
@@ -16,12 +16,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class BudgetServiceImpl implements BudgetService {
     private final BudgetRepository budgetRepository;
-    private final BudgetMapper budgetMapper;
     private final NotificationService notificationService;
 
     @Override
     public void createBudget(BudgetDTO budgetDTO) {
-        budgetRepository.save(budgetMapper.toBudget(budgetDTO));
+        budgetRepository.save(BudgetMapper.toBudget.apply(budgetDTO));
     }
 
     @Override

@@ -1,8 +1,8 @@
 package com.ylab.homework_1.infrastructure.service;
 
+import com.ylab.homework_1.infrastructure.mapper.GoalMapper;
 import com.ylab.homework_1.usecase.dto.GoalDTO;
 import com.ylab.homework_1.usecase.dto.TransactionDTO;
-import com.ylab.homework_1.usecase.mapper.GoalMapper;
 import com.ylab.homework_1.usecase.repository.GoalRepository;
 import com.ylab.homework_1.usecase.service.GoalService;
 import com.ylab.homework_1.usecase.service.NotificationService;
@@ -14,22 +14,21 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GoalServiceImpl implements GoalService {
     private final GoalRepository goalRepository;
-    private final GoalMapper goalMapper;
     private final NotificationService notificationService;
 
     @Override
     public void createGoal(GoalDTO goal) {
-        goalRepository.save(goalMapper.toGoal(goal));
+        goalRepository.save(GoalMapper.toGoal.apply(goal));
     }
 
     @Override
     public void updateGoal(GoalDTO goal) {
-        goalRepository.update(goalMapper.toGoal(goal));
+        goalRepository.update(GoalMapper.toGoal.apply(goal));
     }
 
     @Override
     public GoalDTO getGoalByName(String email, String goalName) {
-        return goalRepository.findByName(email, goalName).map(goalMapper::toGoalDTO).orElseThrow(
+        return goalRepository.findByName(email, goalName).map(GoalMapper.toGoalDTO::apply).orElseThrow(
                 () -> new IllegalArgumentException("Goal " + goalName + " not found")
         );
     }
@@ -37,7 +36,7 @@ public class GoalServiceImpl implements GoalService {
     @Override
     public List<GoalDTO> getUserGoals(String email) {
         return goalRepository.findAllByUser(email).stream()
-                .map(goalMapper::toGoalDTO)
+                .map(GoalMapper.toGoalDTO::apply)
                 .toList();
     }
 
