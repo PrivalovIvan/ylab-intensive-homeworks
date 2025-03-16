@@ -4,27 +4,27 @@ import com.ylab.homework_1.common.TransactionType;
 import com.ylab.homework_1.usecase.dto.TransactionDTO;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 public interface TransactionService {
-    void createTransaction(TransactionDTO transactionDTO);
+    void createTransaction(TransactionDTO transactionDTO) throws SQLException;
 
-    void updateAmount(String email, UUID uuid, BigDecimal amount);
+    void updateAmount(String email, Long id, BigDecimal amount) throws SQLException;
 
-    void updateCategory(String email, UUID uuid, String category);
+    void updateCategory(String email, Long id, String category) throws SQLException;
 
-    void updateDescription(String email, UUID uuid, String description);
+    void updateDescription(String email, Long id, String description) throws SQLException;
 
-    void deleteTransaction(String email, UUID uuid);
+    void deleteTransaction(String email, Long id) throws SQLException;
 
-    List<TransactionDTO> findAllTransactionUser(String email);
+    List<TransactionDTO> findAllTransactionUser(String email) throws SQLException;
 
-    List<TransactionDTO> findAllTransactionFilterByDate(String email, LocalDate date);
+    List<TransactionDTO> findAllTransactionFilterByDate(String email, LocalDate date) throws SQLException;
 
-    List<TransactionDTO> findAllTransactionFilterByCategory(String email, String category);
+    List<TransactionDTO> findAllTransactionFilterByCategory(String email, String category) throws SQLException;
 
-    List<TransactionDTO> findAllTransactionFilterByType(String email, TransactionType type);
+    List<TransactionDTO> findAllTransactionFilterByType(String email, TransactionType type) throws SQLException;
 
 }

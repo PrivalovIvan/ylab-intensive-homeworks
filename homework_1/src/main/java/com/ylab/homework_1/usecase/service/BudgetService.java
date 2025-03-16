@@ -5,19 +5,20 @@ import com.ylab.homework_1.usecase.dto.BudgetDTO;
 import com.ylab.homework_1.usecase.dto.TransactionDTO;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.YearMonth;
 import java.util.Optional;
 
 public interface BudgetService {
-    void createBudget(BudgetDTO budgetDTO);
+    void createBudget(BudgetDTO budgetDTO) throws SQLException;
 
-    Optional<Budget> getBudget(String email, YearMonth month);
+    Optional<Budget> getBudget(String email, YearMonth month) throws SQLException;
 
-    void addExpense(String email, YearMonth month, BigDecimal amount);
+    void addExpense(String email, YearMonth month, BigDecimal amount) throws SQLException;
 
-    boolean isBudgetExceeded(String email, YearMonth month);
+    boolean isBudgetExceeded(String email, YearMonth month) throws SQLException;
 
-    void checkAndNotify(String email, YearMonth month);
+    void checkAndNotify(String email, YearMonth month) throws SQLException;
 
-    void processExpense(TransactionDTO transactionDTO);
+    void processExpense(TransactionDTO transactionDTO) throws SQLException;
 }

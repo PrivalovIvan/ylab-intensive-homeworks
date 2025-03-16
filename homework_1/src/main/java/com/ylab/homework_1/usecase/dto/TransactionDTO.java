@@ -6,13 +6,12 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
 
 @Data
 @AllArgsConstructor
 public class TransactionDTO {
-    private UUID uuid;
+    private Long id;
     private String email;
     private TransactionType type;
     private BigDecimal amount;
@@ -25,13 +24,13 @@ public class TransactionDTO {
     public String toString() {
         return """
                 Transaction: 
-                 uuid: %s
+                 id: %s
                  date: %s
                  email: %s
                  type: %s
                  amount: %s
                  category: %s
                  description: %s
-                """.formatted(uuid, date, email, type, amount, category, description);
+                """.formatted(id, date, email, type, amount, category, description);
     }
 }

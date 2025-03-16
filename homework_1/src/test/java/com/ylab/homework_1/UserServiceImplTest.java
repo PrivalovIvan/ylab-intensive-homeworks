@@ -1,82 +1,95 @@
 package com.ylab.homework_1;
 
-import com.ylab.homework_1.infrastructure.service.UserServiceImpl;
 import com.ylab.homework_1.common.Role;
-import com.ylab.homework_1.domain.model.User;
-import com.ylab.homework_1.domain.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
+import com.ylab.homework_1.infrastructure.repository.UserRepositoryImpl;
+import com.ylab.homework_1.infrastructure.service.UserServiceImpl;
+import com.ylab.homework_1.usecase.dto.UserDTO;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.ClassLoaderResourceAccessor;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
-@ExtendWith(MockitoExtension.class)
+import static org.junit.jupiter.api.Assertions.*;
+
+@Testcontainers
 class UserServiceImplTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Container
+    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("finance_db")
+            .withUsername("finance_user")
+            .withPassword("finance_password");
 
-    @InjectMocks
-    private UserServiceImpl userService;
+    private static UserServiceImpl userService;
 
-    private User user;
+    @BeforeAll
+    static void setUp() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("db.url", postgres.getJdbcUrl());
+        properties.setProperty("db.user", postgres.getUsername());
+        properties.setProperty("db.password", postgres.getPassword());
+        properties.setProperty("liquibase.change-log", "db/migration/changelog.xml");
+        properties.setProperty("liquibase.default-schema", "finance");
 
-    @BeforeEach
-    void setUp() {
-        user = new User("John Doe", "john@example.com", "password123", Role.USER);
+
+        PostgresDataSource.initDB(properties);
+
+        try (var connection = PostgresDataSource.getConnection()) {
+            Database database = DatabaseFactory.getInstance()
+                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            Liquibase liquibase = new Liquibase("db/migration/changelog.xml", new ClassLoaderResourceAccessor(), database);
+            liquibase.update();
+        }
+
+        userService = new UserServiceImpl(new UserRepositoryImpl());
     }
 
     @Test
-    void shouldRegisterUserSuccessfully() {
-        Mockito.doNothing().when(userRepository).create(user);
-        userService.register(user.getName(), user.getEmail(), user.getPassword(), user.getRole());
-        Mockito.verify(userRepository, Mockito.times(1)).create(user);
+    void testRegisterAndFindAll() throws SQLException {
+        UserDTO user = new UserDTO(null, "testUser", "test@example.com", "password", Role.USER);
+        userService.register(user);
+
+        List<UserDTO> users = userService.findAll();
+        assertFalse(users.isEmpty(), "Users list should not be empty");
+        assertTrue(users.stream().anyMatch(u -> "test@example.com".equals(u.getEmail())), "Registered user should be in the list");
     }
 
     @Test
-    void shouldThrowExceptionWhenEmailIsNullOnRegister() {
-        Assertions.assertThatThrownBy(() -> userService.register("John", null, "password", Role.USER))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("email is required");
+    void testFindByEmail() throws SQLException {
+        UserDTO user = new UserDTO(null, "findUser", "find@example.com", "password", Role.USER);
+        userService.register(user);
+
+        Optional<UserDTO> foundUser = Optional.of(userService.findByEmail("find@example.com"));
+        assertTrue(foundUser.isPresent(), "User should be found");
+        assertEquals("find@example.com", foundUser.get().getEmail(), "Email should match");
     }
 
     @Test
-    void shouldLoginSuccessfully() {
-        Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        User loggedInUser = userService.login(user.getEmail(), user.getPassword());
-        Assertions.assertThat(loggedInUser).isEqualTo(user);
-    }
+    void testDelete() throws SQLException {
+        UserDTO user = new UserDTO(null, "deleteUser", "delete@example.com", "password", Role.USER);
+        userService.register(user);
 
-    @Test
-    void shouldThrowExceptionWhenInvalidCredentials() {
-        Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
-        Assertions.assertThatThrownBy(() -> userService.login(user.getEmail(), "wrongPassword"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid email or password");
-    }
+        UserDTO foundUser = userService.findByEmail("delete@example.com");
+        assertNotNull(foundUser, "User should exist before deletion");
+        assertEquals("delete@example.com", foundUser.getEmail(), "Email should match");
 
-    @Test
-    void shouldDeleteUserByEmail() {
-        Mockito.doNothing().when(userRepository).delete(user.getEmail());
-        userService.delete(user.getEmail());
-        Mockito.verify(userRepository, Mockito.times(1)).delete(user.getEmail());
-    }
+        userService.delete("delete@example.com");
 
-    @Test
-    void shouldFindUserByEmail() {
-        Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        User foundUser = userService.findByEmail(user.getEmail());
-        Assertions.assertThat(foundUser).isEqualTo(user);
-    }
-
-    @Test
-    void shouldThrowExceptionIfUserNotFound() {
-        Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
-        Assertions.assertThatThrownBy(() -> userService.findByEmail(user.getEmail()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Email not found");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.findByEmail("delete@example.com");
+        });
+        assertEquals("Email: delete@example.com not found", exception.getMessage(), "Exception message should match");
     }
 }

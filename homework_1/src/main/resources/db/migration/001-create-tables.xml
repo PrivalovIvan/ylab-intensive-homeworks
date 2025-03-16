@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="001-create-tables" author="ivanprivalov">
+        <createSequence sequenceName="user_id_seq"
+                        schemaName="finance"
+                        startValue="1"
+                        incrementBy="1"/>
+
+        <createTable tableName="users" schemaName="finance">
+            <column name="id" type="BIGINT" defaultValueComputed="nextval('finance.user_id_seq')">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createSequence sequenceName="transaction_id_seq"
+                        schemaName="finance"
+                        startValue="1"
+                        incrementBy="1"/>
+
+        <createTable tableName="transactions" schemaName="finance">
+            <column name="id" type="bigint" defaultValueComputed="nextval('finance.transaction_id_seq')">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="uuid" type="uuid">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="decimal(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="varchar(255)"/>
+            <column name="name_goal" type="varchar(255)"/>
+            <column name="date" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+        </createTable>
+
+        <createTable tableName="budgets" schemaName="finance">
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year_month" type="varchar(8)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="budget" type="decimal(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="spent" type="decimal(19,2)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="goals" schemaName="finance">
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target_amount" type="decimal(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="saved_amount" type="decimal(19,2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

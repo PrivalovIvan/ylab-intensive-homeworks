@@ -1,30 +1,66 @@
 package com.ylab.homework_1;
 
-import com.ylab.homework_1.common.Role;
-import com.ylab.homework_1.infrastructure.mapper.*;
+import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
 import com.ylab.homework_1.infrastructure.repository.*;
 import com.ylab.homework_1.infrastructure.service.*;
 import com.ylab.homework_1.ui.console.ConsoleApp;
-import com.ylab.homework_1.usecase.dto.UserDTO;
-import com.ylab.homework_1.infrastructure.repository.GoalRepositoryImpl;
 import com.ylab.homework_1.usecase.service.*;
+import liquibase.Contexts;
+import liquibase.LabelExpression;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.ClassLoaderResourceAccessor;
 
-import java.util.UUID;
+import java.sql.Connection;
+import java.util.Properties;
 
 public class Homework1Application {
-    public static void main(String[] args) {
-        NotificationService notificationService = new NotificationServiceImpl();
-        UserService userService = new UserServiceImpl(new UserRepositoryImpl());
-        BudgetService budgetService = new BudgetServiceImpl(new BudgetRepositoryImpl(), notificationService);
-        GoalService goalService = new GoalServiceImpl(new GoalRepositoryImpl(), notificationService);
-        TransactionService transactionService = new TransactionServiceImpl(new TransactionRepositoryImpl());
-        StatisticsService statisticsService = new StatisticsServiceImpl(transactionService);
-        AdministrationService administrationService = new AdministrationServiceImpl(userService, transactionService);
-        ConsoleApp app = new ConsoleApp(userService, transactionService, budgetService, goalService, statisticsService, administrationService);
 
-        UserDTO user = new UserDTO(UUID.randomUUID(), "user", "user@example.ru", "1234", Role.USER);
-        userService.register(user);
-        app.setCurrentUser(user);
-        app.start();
+    public static void main(String[] args) {
+        try {
+            Properties properties = loadProperties();
+            PostgresDataSource.initDB(properties);
+            initializeLiquibase(properties);
+            NotificationService notificationService = new NotificationServiceImpl();
+            UserService userService = new UserServiceImpl(new UserRepositoryImpl());
+            BudgetService budgetService = new BudgetServiceImpl(new BudgetRepositoryImpl(), notificationService);
+            GoalService goalService = new GoalServiceImpl(new GoalRepositoryImpl(), notificationService);
+            TransactionService transactionService = new TransactionServiceImpl(new TransactionRepositoryImpl());
+            StatisticsService statisticsService = new StatisticsServiceImpl(transactionService);
+            AdministrationService administrationService = new AdministrationServiceImpl(userService, transactionService);
+            ConsoleApp app = new ConsoleApp(userService, transactionService, budgetService, goalService, statisticsService, administrationService);
+
+            app.start();
+
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static Properties loadProperties() throws Exception {
+        Properties properties = new Properties();
+        var inputStream = Homework1Application.class.getClassLoader().getResourceAsStream("application.properties");
+        if (inputStream == null) {
+            throw new IllegalStateException("Cannot find application.properties in classpath");
+        }
+        properties.load(inputStream);
+        return properties;
+    }
+
+    private static void initializeLiquibase(Properties properties) throws Exception {
+        System.out.println("Initializing Liquibase...");
+        try (Connection connection = PostgresDataSource.getConnection()) {
+            Database database = DatabaseFactory.getInstance()
+                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            String changelogFile = properties.getProperty("liquibase.change-log");
+            System.out.println("Using changelog: " + changelogFile);
+
+            Liquibase liquibase = new Liquibase(changelogFile, new ClassLoaderResourceAccessor(), database);
+            liquibase.update();
+            System.out.println("Liquibase migrations applied successfully");
+        }
     }
 }

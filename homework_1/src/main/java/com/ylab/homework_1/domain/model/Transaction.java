@@ -13,7 +13,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class Transaction {
-    private UUID uuid;
+    private Long id;
     private String email;
     private TransactionType type;
     private BigDecimal amount;
@@ -33,6 +33,6 @@ public class Transaction {
                  amount: %s
                  category: %s
                  description: %s
-                """.formatted(uuid, date, email, type, amount, category, description);
+                """.formatted(id, date, email, type, amount, category, description);
     }
 }

@@ -25,24 +25,37 @@ repositories {
 }
 
 dependencies {
-//    implementation("org.springframework.boot:spring-boot-starter")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    //mapper
-//    implementation("org.mapstruct:mapstruct:1.5.5.Final")
-//    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-//    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+// https://mvnrepository.com/artifact/org.postgresql/postgresql
+    implementation("org.postgresql:postgresql:42.7.5")
+
+// https://mvnrepository.com/artifact/org.liquibase/liquibase-core
+    implementation("org.liquibase:liquibase-core:4.31.1")
+
+    // https://mvnrepository.com/artifact/org.testcontainers/postgresql
+    testImplementation("org.testcontainers:postgresql:1.20.6")
+
+    // https://mvnrepository.com/artifact/org.testcontainers/testcontainers
+    testImplementation("org.testcontainers:testcontainers:1.20.6")
+
+    // https://mvnrepository.com/artifact/org.testcontainers/junit-jupiter
+    testImplementation("org.testcontainers:junit-jupiter:1.20.6")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+
 application {
     mainClass.set("com.ylab.homework_1.Homework1Application")
 }
 
-
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+    options.compilerArgs.add("-Xlint:deprecation") // Включаем предупреждения о deprecated API
+}

@@ -11,11 +11,12 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.UUID;
 
 @Data
 @RequiredArgsConstructor
@@ -52,12 +53,14 @@ public class ConsoleApp {
                     }
                 }
                 case 0 -> {
+                    System.out.println("Exiting...");
                     return;
                 }
                 default -> System.out.println("Invalid choice");
             }
         }
     }
+
 
     private void register() {
         System.out.print("Name: ");
@@ -66,10 +69,9 @@ public class ConsoleApp {
         String email = scanner.nextLine();
         System.out.print("Password: ");
         String password = scanner.nextLine();
-        UUID uuid = UUID.randomUUID();
         try {
-            userService.register(new UserDTO(uuid, name, email, password, Role.USER));
-        } catch (IllegalArgumentException e) {
+            userService.register(new UserDTO(null, name, email, password, Role.USER));
+        } catch (IllegalArgumentException | SQLException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -85,6 +87,8 @@ public class ConsoleApp {
             if (currentUser.getRole() == Role.USER) menuUser();
             else if (currentUser.getRole() == Role.ADMIN) menuAdmin();
         } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
@@ -104,26 +108,34 @@ public class ConsoleApp {
             int choice = scanner.nextInt();
             scanner.nextLine();
             clearConsole();
-            switch (choice) {
-                case 1 -> {
-                    System.out.println("Users: ");
-                    System.out.println(administrationService.findAllUsers());
+            try {
+                switch (choice) {
+                    case 1 -> {
+                        System.out.println("Users: ");
+                        System.out.println(administrationService.findAllUsers());
+                    }
+                    case 2 -> {
+                        System.out.println("Email users: ");
+                        String email = scanner.nextLine();
+                        System.out.println("Transactions: ");
+                        try {
+                            System.out.println(administrationService.findAllTransactionsOfUsers(email));
+                        } catch (SQLException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
+                    case 3 -> {
+                        System.out.println("Email user: ");
+                        String email = scanner.nextLine();
+                        administrationService.deleteUser(email);
+                    }
+                    case 0 -> {
+                        return;
+                    }
+                    default -> System.out.println("Invalid choice");
                 }
-                case 2 -> {
-                    System.out.println("Email users: ");
-                    String email = scanner.nextLine();
-                    System.out.println("Transactions: ");
-                    System.out.println(administrationService.findAllTransactionsOfUsers(email));
-                }
-                case 3 -> {
-                    System.out.println("Email user: ");
-                    String email = scanner.nextLine();
-                    administrationService.deleteUser(email);
-                }
-                case 0 -> {
-                    return;
-                }
-                default -> System.out.println("Invalid choice");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         }
     }
@@ -180,58 +192,62 @@ public class ConsoleApp {
             int choice = scanner.nextInt();
             scanner.nextLine();
             clearConsole();
-            switch (choice) {
-                case 1 -> {
-                    System.out.print("New name: ");
-                    String name = scanner.nextLine();
-                    currentUser = userService.updateUser(currentUser.getId(), name, null, null);
-                    System.out.println("Name update successfully");
-                }
-                case 2 -> {
-                    System.out.print("New email: ");
-                    String email = scanner.nextLine();
-                    currentUser = userService.updateUser(currentUser.getId(), null, email, null);
-                    System.out.println("Email update successfully");
-                }
-                case 3 -> {
-                    System.out.print("New password: ");
-                    String password = scanner.nextLine();
-                    currentUser = userService.updateUser(currentUser.getId(), null, null, password);
-                    System.out.println("Password update successfully");
-                }
-                case 4 -> {
-                    System.out.println("""
-                            Are you sure you want to delete your account?
-                            1. Yes
-                            2. No
-                            """);
-                    int delete = scanner.nextInt();
-                    scanner.nextLine();
-                    if (delete == 1) {
-                        userService.delete(currentUser.getEmail());
-                        currentUser = null;
+            try {
+
+                switch (choice) {
+                    case 1 -> {
+                        System.out.print("New name: ");
+                        String name = scanner.nextLine();
+                        currentUser = userService.updateUser(currentUser.getId(), name, null, null);
+                        System.out.println("Name update successfully");
+                    }
+                    case 2 -> {
+                        System.out.print("New email: ");
+                        String email = scanner.nextLine();
+                        currentUser = userService.updateUser(currentUser.getId(), null, email, null);
+                        System.out.println("Email update successfully");
+                    }
+                    case 3 -> {
+                        System.out.print("New password: ");
+                        String password = scanner.nextLine();
+                        currentUser = userService.updateUser(currentUser.getId(), null, null, password);
+                        System.out.println("Password update successfully");
+                    }
+                    case 4 -> {
+                        System.out.println("""
+                                Are you sure you want to delete your account?
+                                1. Yes
+                                2. No
+                                """);
+                        int delete = scanner.nextInt();
+                        scanner.nextLine();
+                        if (delete == 1) {
+                            userService.delete(currentUser.getEmail());
+                            currentUser = null;
+                            return;
+                        }
+                    }
+                    case 5 -> System.out.println(userService.findByUuid(currentUser.getId()));
+                    case 0 -> {
                         return;
                     }
+                    default -> System.out.println("Invalid choice");
                 }
-                case 5 -> System.out.println(userService.findByUuid(currentUser.getId()));
-                case 0 -> {
-                    return;
-                }
-                default -> System.out.println("Invalid choice");
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
             }
         }
     }
 
     //endregion
-    //region Financial management
+//region Financial management
     private void financialManagement() {
         while (true) {
             System.out.println("""
                     1. Create transaction
                     2. Update transaction
                     3. Delete transaction
-                    4. View transaction
-                    
+                    4. View transactions
                     0. Exit
                     """);
             int choice = scanner.nextInt();
@@ -243,15 +259,15 @@ public class ConsoleApp {
                     case 2 -> updateTransaction();
                     case 3 -> deleteTransaction();
                     case 4 -> viewTransaction();
-
                     case 0 -> {
                         return;
                     }
+                    default -> System.out.println("Invalid choice");
                 }
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.out.println("Error: " + e.getMessage());
             }
         }
     }
@@ -265,10 +281,21 @@ public class ConsoleApp {
         int typeTransaction = scanner.nextInt();
         scanner.nextLine();
         TransactionType type = TransactionType.values()[typeTransaction - 1];
-        String name = "";
-        if (type.equals(TransactionType.INCOME)) {
-            System.out.print("Name of the replenishment goal: ");
-            name = scanner.nextLine();
+        String nameGoal = null;
+        if (type == TransactionType.INCOME) {
+            System.out.print("Name of the replenishment goal (optional, press Enter to skip): ");
+            nameGoal = scanner.nextLine();
+            if (nameGoal.isEmpty()) nameGoal = null;
+            else {
+                try {
+                    goalService.getGoalByName(currentUser.getEmail(), nameGoal); // Проверка существования цели
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Goal not found, transaction will be created without goal.");
+                    nameGoal = null;
+                } catch (SQLException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
         }
         System.out.print("Amount: ");
         BigDecimal amount = scanner.nextBigDecimal();
@@ -277,40 +304,64 @@ public class ConsoleApp {
         String category = scanner.nextLine();
         System.out.print("Description: ");
         String description = scanner.nextLine();
-        UUID uuid = UUID.randomUUID();
         LocalDate date = LocalDate.now();
 
-        TransactionDTO transactionDTO = new TransactionDTO(uuid, currentUser.getEmail(), type, amount, category, name, date, description);
+        TransactionDTO transactionDTO = new TransactionDTO(null, currentUser.getEmail(), type, amount, category, nameGoal, date, description);
 
-        transactionService.createTransaction(transactionDTO);
-
-        if (transactionDTO.getType().equals(TransactionType.EXPENSE)) {
-            budgetService.processExpense(transactionDTO);
+        try {
+            transactionService.createTransaction(transactionDTO);
+            if (type == TransactionType.EXPENSE) {
+                budgetService.processExpense(transactionDTO);
+            } else if (type == TransactionType.INCOME && nameGoal != null) {
+                goalService.processIncome(transactionDTO);
+            }
+            System.out.println("Transaction created successfully");
+        } catch (SQLException e) {
+            System.out.println("Failed to create transaction: " + e.getMessage());
         }
     }
 
     private void updateTransaction() {
         System.out.print("Id transaction: ");
-        String uuid = scanner.nextLine();
+        Long id = scanner.nextLong();
+        scanner.nextLine();
         System.out.print("New Amount: ");
         BigDecimal newAmount = scanner.nextBigDecimal();
         scanner.nextLine();
-
         System.out.print("New Category: ");
         String newCategory = scanner.nextLine();
-
         System.out.print("New Description: ");
         String newDescription = scanner.nextLine();
 
-        transactionService.updateAmount(currentUser.getEmail(), UUID.fromString(uuid), newAmount);
-        transactionService.updateCategory(currentUser.getEmail(), UUID.fromString(uuid), newCategory);
-        transactionService.updateDescription(currentUser.getEmail(), UUID.fromString(uuid), newDescription);
+        try {
+            TransactionDTO existingTransaction = transactionService.findAllTransactionUser(currentUser.getEmail())
+                    .stream()
+                    .filter(t -> t.getId().equals(id))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
+            TransactionDTO updatedTransaction = new TransactionDTO(
+                    id, currentUser.getEmail(), existingTransaction.getType(), newAmount, newCategory,
+                    existingTransaction.getNameGoal(), existingTransaction.getDate(), newDescription
+            );
+            transactionService.updateAmount(currentUser.getEmail(), id, newAmount);
+            transactionService.updateCategory(currentUser.getEmail(), id, newCategory);
+            transactionService.updateDescription(currentUser.getEmail(), id, newDescription);
+            System.out.println("Transaction updated successfully");
+        } catch (SQLException e) {
+            System.out.println("Failed to update transaction: " + e.getMessage());
+        }
     }
 
     private void deleteTransaction() {
         System.out.print("Id transaction: ");
-        String idTransaction = scanner.nextLine();
-        transactionService.deleteTransaction(currentUser.getEmail(), UUID.fromString(idTransaction));
+        Long idTransaction = scanner.nextLong();
+        scanner.nextLine();
+        try {
+            transactionService.deleteTransaction(currentUser.getEmail(), idTransaction);
+            System.out.println("Transaction deleted successfully");
+        } catch (SQLException e) {
+            System.out.println("Failed to delete transaction: " + e.getMessage());
+        }
     }
 
     private void viewTransaction() {
@@ -320,53 +371,64 @@ public class ConsoleApp {
                     2. Find transaction by date
                     3. Find transaction by category
                     4. Find transaction by type
-                    
                     0. Exit
                     """);
             int choice = scanner.nextInt();
             scanner.nextLine();
             clearConsole();
-            switch (choice) {
-                case 1 -> System.out.println(transactionService.findAllTransactionUser(currentUser.getEmail()));
-                case 2 -> {
-                    System.out.print("Year: ");
-                    int year = scanner.nextInt();
-                    scanner.nextLine();
-                    System.out.print("Month: ");
-                    int month = scanner.nextInt();
-                    scanner.nextLine();
-                    System.out.print("Day: ");
-                    int day = scanner.nextInt();
-                    scanner.nextLine();
-                    LocalDate date = LocalDate.of(year, month, day);
-                    System.out.println(transactionService.findAllTransactionFilterByDate(currentUser.getEmail(), date));
+            try {
+                switch (choice) {
+                    case 1 -> {
+                        List<TransactionDTO> transactions = transactionService.findAllTransactionUser(currentUser.getEmail());
+                        if (transactions.isEmpty()) System.out.println("No transactions found");
+                        else transactions.forEach(System.out::println);
+                    }
+                    case 2 -> {
+                        System.out.print("Year: ");
+                        int year = scanner.nextInt();
+                        System.out.print("Month: ");
+                        int month = scanner.nextInt();
+                        System.out.print("Day: ");
+                        int day = scanner.nextInt();
+                        scanner.nextLine();
+                        LocalDate date = LocalDate.of(year, month, day);
+                        List<TransactionDTO> transactions = transactionService.findAllTransactionFilterByDate(currentUser.getEmail(), date);
+                        if (transactions.isEmpty()) System.out.println("No transactions found");
+                        else transactions.forEach(System.out::println);
+                    }
+                    case 3 -> {
+                        System.out.print("Category: ");
+                        String category = scanner.nextLine();
+                        List<TransactionDTO> transactions = transactionService.findAllTransactionFilterByCategory(currentUser.getEmail(), category);
+                        if (transactions.isEmpty()) System.out.println("No transactions found");
+                        else transactions.forEach(System.out::println);
+                    }
+                    case 4 -> {
+                        System.out.print("""
+                                Type transaction:
+                                    1. INCOME
+                                    2. EXPENSE
+                                """);
+                        int type = scanner.nextInt();
+                        scanner.nextLine();
+                        List<TransactionDTO> transactions = transactionService.findAllTransactionFilterByType(
+                                currentUser.getEmail(), type == 1 ? TransactionType.INCOME : TransactionType.EXPENSE);
+                        if (transactions.isEmpty()) System.out.println("No transactions found");
+                        else transactions.forEach(System.out::println);
+                    }
+                    case 0 -> {
+                        return;
+                    }
+                    default -> System.out.println("Invalid choice");
                 }
-                case 3 -> {
-                    System.out.print("Category: ");
-                    String category = scanner.nextLine();
-                    System.out.println(transactionService.findAllTransactionFilterByCategory(currentUser.getEmail(), category));
-                }
-                case 4 -> {
-                    System.out.print("""
-                            Type transaction:
-                                1. INCOME
-                                2. EXPENSE
-                            """);
-                    int type = scanner.nextInt();
-                    scanner.nextLine();
-                    System.out.println(transactionService.findAllTransactionFilterByType(currentUser.getEmail(),
-                            type == 1 ? TransactionType.INCOME : TransactionType.EXPENSE));
-                }
-                case 0 -> {
-                    return;
-                }
-                default -> System.out.println("Invalid choice");
+            } catch (SQLException e) {
+                System.out.println("Failed to view transactions: " + e.getMessage());
             }
         }
     }
 
     //endregion
-    //region Budget management
+//region Budget management
     private void budgetManagement() {
         while (true) {
             System.out.println("""
@@ -399,8 +461,13 @@ public class ConsoleApp {
         YearMonth yearMonth = YearMonth.parse(scanner.nextLine());
         System.out.print("Enter budget limit: ");
         BigDecimal budgetLimit = scanner.nextBigDecimal();
+        scanner.nextLine();
         BudgetDTO budgetDTO = new BudgetDTO(currentUser.getEmail(), yearMonth, budgetLimit, BigDecimal.ZERO);
-        budgetService.createBudget(budgetDTO);
+        try {
+            budgetService.createBudget(budgetDTO);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void addExpense() {
@@ -408,25 +475,38 @@ public class ConsoleApp {
         YearMonth yearMonth = YearMonth.parse(scanner.nextLine());
         System.out.print("Expense: ");
         BigDecimal expense = scanner.nextBigDecimal();
-        budgetService.addExpense(currentUser.getEmail(), yearMonth, expense);
+        scanner.nextLine();
+        try {
+            budgetService.addExpense(currentUser.getEmail(), yearMonth, expense);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void checkBudget() {
         System.out.println("Enter budget month (YYYY-MM): ");
         YearMonth yearMonth = YearMonth.parse(scanner.nextLine());
-        System.out.println("Budget is exceeded: " + budgetService.isBudgetExceeded(currentUser.getEmail(), yearMonth));
+        try {
+            System.out.println("Budget is exceeded: " + budgetService.isBudgetExceeded(currentUser.getEmail(), yearMonth));
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void viewBudget() {
         System.out.println("Enter budget month (YYYY-MM): ");
         YearMonth yearMonth = YearMonth.parse(scanner.nextLine());
-        budgetService.getBudget(currentUser.getEmail(), yearMonth)
-                .ifPresentOrElse(budget -> System.out.println("Budget: " + budget),
-                        () -> System.out.println("Budget not found for " + yearMonth));
+        try {
+            budgetService.getBudget(currentUser.getEmail(), yearMonth)
+                    .ifPresentOrElse(budget -> System.out.println("Budget: " + budget),
+                            () -> System.out.println("Budget not found for " + yearMonth));
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     //endregion
-    //region Goal management
+//region Goal management
     private void goalManagement() {
         while (true) {
             System.out.println("""
@@ -434,14 +514,11 @@ public class ConsoleApp {
                     2. View goal
                     3. Update goal
                     4. Delete goal
-                    
                     0. Exit
                     """);
 
             int choice = scanner.nextInt();
             scanner.nextLine();
-
-            clearConsole();
             try {
                 switch (choice) {
                     case 1 -> createGoal();
@@ -456,44 +533,70 @@ public class ConsoleApp {
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.out.println("Error: " + e.getMessage());
             }
         }
     }
 
     private void createGoal() {
-        System.out.println("Name goal: ");
+        System.out.print("Name goal: ");
         String name = scanner.nextLine();
-        System.out.println("Amount goal: ");
+        System.out.print("Amount goal: ");
         BigDecimal amount = scanner.nextBigDecimal();
+        scanner.nextLine();
         GoalDTO goalDTO = new GoalDTO(currentUser.getEmail(), name, amount, BigDecimal.ZERO);
-        goalService.createGoal(goalDTO);
+        try {
+            goalService.createGoal(goalDTO);
+            System.out.println("Goal created successfully");
+        } catch (SQLException e) {
+            System.out.println("Failed to create goal: " + e.getMessage());
+        }
     }
 
     private void viewGoal() {
-        System.out.println(goalService.getUserGoals(currentUser.getEmail()));
+        try {
+            List<GoalDTO> goals = goalService.getUserGoals(currentUser.getEmail());
+            if (goals.isEmpty()) {
+                System.out.println("No goals found for " + currentUser.getEmail());
+            } else {
+                goals.forEach(System.out::println);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to view goals: " + e.getMessage());
+        }
     }
 
     private void updateGoal() {
-        System.out.println("Name goal: ");
+        System.out.print("Name goal: ");
         String name = scanner.nextLine();
-        System.out.println("Add amount: ");
+        System.out.print("Add amount: ");
         BigDecimal amount = scanner.nextBigDecimal();
         scanner.nextLine();
 
-        GoalDTO goalDTO = new GoalDTO(currentUser.getEmail(), name, amount, BigDecimal.ZERO);
-
-        goalService.updateGoal(goalDTO);
+        try {
+            GoalDTO existingGoal = goalService.getGoalByName(currentUser.getEmail(), name);
+            BigDecimal newSavedAmount = existingGoal.getSavedAmount().add(amount);
+            GoalDTO updatedGoal = new GoalDTO(currentUser.getEmail(), name, existingGoal.getTargetAmount(), newSavedAmount);
+            goalService.updateGoal(updatedGoal);
+            System.out.println("Goal updated successfully");
+        } catch (SQLException e) {
+            System.out.println("Failed to update goal: " + e.getMessage());
+        }
     }
 
     private void deleteGoal() {
-        System.out.println("Name goal: ");
+        System.out.print("Name goal: ");
         String name = scanner.nextLine();
-        goalService.deleteGoal(currentUser.getEmail(), name);
+        try {
+            goalService.deleteGoal(currentUser.getEmail(), name);
+            System.out.println("Goal deleted successfully");
+        } catch (SQLException e) {
+            System.out.println("Failed to delete goal: " + e.getMessage());
+        }
     }
 
     //endregion
-    //region Statistics and analytics
+//region Statistics and analytics
     private void statisticsAndAnalytics() {
         while (true) {
             System.out.println("""
@@ -524,7 +627,11 @@ public class ConsoleApp {
     }
 
     private void currentBalance() {
-        System.out.println("Current balance: " + statisticsService.getCurrentBalance(currentUser.getEmail()));
+        try {
+            System.out.println("Current balance: " + statisticsService.getCurrentBalance(currentUser.getEmail()));
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void incomeForThePeriod() {
@@ -532,7 +639,11 @@ public class ConsoleApp {
         LocalDate dateFrom = LocalDate.parse(scanner.nextLine());
         System.out.print("Period to (YYYY-MM-DD): ");
         LocalDate dateTo = LocalDate.parse(scanner.nextLine());
-        System.out.println("Income for the period: " + statisticsService.getTotal(currentUser.getEmail(), dateFrom, dateTo, TransactionType.INCOME));
+        try {
+            System.out.println("Income for the period: " + statisticsService.getTotal(currentUser.getEmail(), dateFrom, dateTo, TransactionType.INCOME));
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void expenseForThePeriod() {
@@ -540,7 +651,11 @@ public class ConsoleApp {
         LocalDate dateFrom = LocalDate.parse(scanner.nextLine());
         System.out.print("Period to (YYYY-MM-DD): ");
         LocalDate dateTo = LocalDate.parse(scanner.nextLine());
-        System.out.println("Income for the period: " + statisticsService.getTotal(currentUser.getEmail(), dateFrom, dateTo, TransactionType.EXPENSE));
+        try {
+            System.out.println("Income for the period: " + statisticsService.getTotal(currentUser.getEmail(), dateFrom, dateTo, TransactionType.EXPENSE));
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void costAnalysisByCategory() {
@@ -549,7 +664,12 @@ public class ConsoleApp {
         System.out.print("Period to (YYYY-MM-DD): ");
         LocalDate dateTo = LocalDate.parse(scanner.nextLine());
         System.out.println("Cost analysis by category: ");
-        var expensesByCategory = statisticsService.getExpensesByCategory(currentUser.getEmail(), dateFrom, dateTo);
+        Map<String, BigDecimal> expensesByCategory = null;
+        try {
+            expensesByCategory = statisticsService.getExpensesByCategory(currentUser.getEmail(), dateFrom, dateTo);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
 
         for (Map.Entry<String, BigDecimal> entry : expensesByCategory.entrySet()) {
             System.out.println(entry.getKey() + ": " + entry.getValue());
@@ -562,9 +682,13 @@ public class ConsoleApp {
         System.out.print("Period to (YYYY-MM-DD): ");
         LocalDate dateTo = LocalDate.parse(scanner.nextLine());
         System.out.println("Financial report: ");
-        System.out.println(statisticsService.generateFinancialReport(currentUser.getEmail(), dateFrom, dateTo));
+        try {
+            System.out.println(statisticsService.generateFinancialReport(currentUser.getEmail(), dateFrom, dateTo));
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
-    //endregion
+//endregion
 
     public static void clearConsole() {
         try {

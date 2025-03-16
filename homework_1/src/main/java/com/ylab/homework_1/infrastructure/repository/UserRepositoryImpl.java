@@ -1,40 +1,107 @@
 package com.ylab.homework_1.infrastructure.repository;
 
+import com.ylab.homework_1.common.Role;
 import com.ylab.homework_1.domain.model.User;
+import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
+import com.ylab.homework_1.infrastructure.mapper.UserMapper;
 import com.ylab.homework_1.usecase.repository.UserRepository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 public class UserRepositoryImpl implements UserRepository {
-    private final Map<UUID, User> users = new HashMap<>();
-
     @Override
-    public void save(User user) {
-        users.put(user.getId(), user);
+    public void save(User user) throws SQLException {
+        String insertUserSQL = "INSERT INTO finance.users(name, email, password, role) VALUES (?,?,?,?)";
+        try (Connection connection = PostgresDataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(insertUserSQL);
+            preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, user.getEmail());
+            preparedStatement.setString(3, user.getPassword());
+            preparedStatement.setString(4, user.getRole().toString());
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
-    public Optional<User> getByEmail(String email) {
-        return users.values().stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst();
+    public void update(User user) throws SQLException {
+        String updateUserSQL = "UPDATE finance.users SET name = ?, email = ?, password = ? WHERE id = ?";
+        try (Connection connection = PostgresDataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(updateUserSQL);
+            preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, user.getEmail());
+            preparedStatement.setString(3, user.getPassword());
+            preparedStatement.setLong(4, user.getId());
+            preparedStatement.executeUpdate();
+        }
     }
 
     @Override
-    public Optional<User> getById(UUID uuid) {
-        return users.values().stream()
-                .filter(user -> user.getId().equals(uuid))
-                .findFirst();
+    public Optional<User> getByEmail(String email) throws SQLException {
+        String selectUserByEmailSQL = "SELECT * FROM finance.users WHERE email = ?";
+        try (Connection connection = PostgresDataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(selectUserByEmailSQL);
+            preparedStatement.setString(1, email);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(resultSetToUser(resultSet));
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
-    public void delete(String email) {
-        getByEmail(email).ifPresent(users::remove);
+    public Optional<User> getById(Long id) throws SQLException {
+        String selectUserByEmailSQL = "SELECT * FROM finance.users WHERE id = ?";
+        try (Connection connection = PostgresDataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(selectUserByEmailSQL);
+            preparedStatement.setLong(1, id);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(resultSetToUser(resultSet));
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
-    public List<User> getAll() {
-        return new ArrayList<>(users.values());
+    public void delete(String email) throws SQLException {
+        String deleteUserSQL = "DELETE FROM finance.users WHERE email = ?";
+        try (Connection connection = PostgresDataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(deleteUserSQL);
+            preparedStatement.setString(1, email);
+            preparedStatement.executeUpdate();
+        }
+
+    }
+
+    @Override
+    public List<User> getAll() throws SQLException {
+        List<User> users = new ArrayList<>();
+        String selectAllUsersSQL = "SELECT * FROM finance.users";
+        try (Connection connection = PostgresDataSource.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(selectAllUsersSQL);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    users.add(resultSetToUser(resultSet));
+                }
+            }
+        }
+        return users;
+    }
+
+    private static User resultSetToUser(ResultSet resultSet) throws SQLException {
+        return new User(
+                resultSet.getLong("id"),
+                resultSet.getString("name"),
+                resultSet.getString("email"),
+                resultSet.getString("password"),
+                Role.valueOf(resultSet.getString("role")));
     }
 
 }
