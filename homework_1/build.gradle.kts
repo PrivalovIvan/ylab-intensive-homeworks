@@ -57,5 +57,5 @@ application {
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.compilerArgs.add("-Xlint:deprecation") // Включаем предупреждения о deprecated API
+    options.compilerArgs.add("-Xlint:deprecation")
 }
