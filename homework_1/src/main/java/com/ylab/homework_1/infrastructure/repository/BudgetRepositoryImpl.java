@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.UUID;
 
 public class BudgetRepositoryImpl implements BudgetRepository {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMM");
@@ -66,11 +67,13 @@ public class BudgetRepositoryImpl implements BudgetRepository {
     }
 
     private Budget setResultToBudget(ResultSet resultSet) throws SQLException {
-        return new Budget(
-                resultSet.getString("email"),
-                YearMonth.parse(resultSet.getString("year_month"), FORMATTER),
-                resultSet.getBigDecimal("budget"),
-                resultSet.getBigDecimal("spent")
-        );
+        return Budget.builder()
+                .uuid(resultSet.getObject(1, UUID.class))
+                .email(resultSet.getString("email"))
+                .yearMonth(YearMonth.parse(resultSet.getString("year_month"), FORMATTER))
+                .budget(resultSet.getBigDecimal("budget"))
+                .spent(resultSet.getBigDecimal("spent"))
+                .build();
+
     }
 }

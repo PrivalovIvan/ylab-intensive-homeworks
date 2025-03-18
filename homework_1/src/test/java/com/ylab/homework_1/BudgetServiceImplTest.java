@@ -13,38 +13,22 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.YearMonth;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
 class BudgetServiceImplTest {
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("finance_db")
-            .withUsername("finance_user")
-            .withPassword("finance_password");
-
     private static BudgetServiceImpl budgetService;
 
     @BeforeAll
     static void setUp() throws Exception {
-        Properties properties = new Properties();
-        properties.setProperty("db.url", postgres.getJdbcUrl());
-        properties.setProperty("db.user", postgres.getUsername());
-        properties.setProperty("db.password", postgres.getPassword());
-        properties.setProperty("liquibase.change-log", "db/migration/changelog.xml");
-        properties.setProperty("liquibase.default-schema", "finance");
-
-        PostgresDataSource.initDB(properties);
+        PostgresDataSource.initDB(TestContainerConfig.getProperties());
 
         try (var connection = PostgresDataSource.getConnection()) {
             Database database = DatabaseFactory.getInstance()
@@ -58,7 +42,12 @@ class BudgetServiceImplTest {
 
     @Test
     void testCreateAndRetrieveBudget() throws SQLException {
-        BudgetDTO budget = new BudgetDTO("test@example.com", YearMonth.of(2025, 3), BigDecimal.valueOf(1000), BigDecimal.ZERO);
+        BudgetDTO budget = BudgetDTO.builder()
+                .email("test@example.com")
+                .yearMonth(YearMonth.of(2025, 3))
+                .budget(BigDecimal.valueOf(1000))
+                .spent(BigDecimal.ZERO)
+                .build();
         budgetService.createBudget(budget);
 
         BudgetDTO retrievedBudget = BudgetMapper.toBudgetDTO.apply(budgetService.getBudget("test@example.com", YearMonth.of(2025, 3)).get());
@@ -69,7 +58,12 @@ class BudgetServiceImplTest {
 
     @Test
     void testAddExpenseAndCheckExceeded() throws SQLException {
-        BudgetDTO budget = new BudgetDTO("test@example.com", YearMonth.of(2025, 5), BigDecimal.valueOf(500), BigDecimal.ZERO);
+        BudgetDTO budget = BudgetDTO.builder()
+                .email("test@example.com")
+                .yearMonth(YearMonth.of(2025, 5))
+                .budget(BigDecimal.valueOf(500))
+                .spent(BigDecimal.ZERO)
+                .build();
         budgetService.createBudget(budget);
 
         budgetService.addExpense("test@example.com", YearMonth.of(2025, 5), BigDecimal.valueOf(600));

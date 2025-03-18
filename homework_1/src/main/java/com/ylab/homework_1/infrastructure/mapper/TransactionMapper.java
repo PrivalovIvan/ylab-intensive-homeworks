@@ -7,7 +7,7 @@ import com.ylab.homework_1.usecase.mapper.Mapper;
 public class TransactionMapper {
     public static final Mapper<Transaction, TransactionDTO> toTransaction = transactionDTO ->
             new Transaction(
-                    transactionDTO.getId(),
+                    transactionDTO.getUuid(),
                     transactionDTO.getEmail(),
                     transactionDTO.getType(),
                     transactionDTO.getAmount(),
@@ -18,7 +18,7 @@ public class TransactionMapper {
 
     public static final Mapper<TransactionDTO, Transaction> toTransactionDTO = transaction ->
             new TransactionDTO(
-                    transaction.getId(),
+                    transaction.getUuid(),
                     transaction.getEmail(),
                     transaction.getType(),
                     transaction.getAmount(),

@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface TransactionRepository {
     void save(Transaction transaction) throws SQLException;
@@ -15,9 +16,9 @@ public interface TransactionRepository {
 
     List<Transaction> getTransactionsByUserEmail(String email) throws SQLException;
 
-    Optional<Transaction> getById(Long id) throws SQLException;
+    Optional<Transaction> getById(UUID id) throws SQLException;
 
-    void delete(String email, Long id) throws SQLException;
+    void delete(String email, UUID id) throws SQLException;
 
     List<Transaction> getTransactionsByUserEmailFilterDate(String email, LocalDate date) throws SQLException;
 

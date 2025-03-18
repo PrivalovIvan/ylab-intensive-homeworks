@@ -12,39 +12,21 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class UserServiceImplTest {
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("finance_db")
-            .withUsername("finance_user")
-            .withPassword("finance_password");
-
     private static UserServiceImpl userService;
 
     @BeforeAll
     static void setUp() throws Exception {
-        Properties properties = new Properties();
-        properties.setProperty("db.url", postgres.getJdbcUrl());
-        properties.setProperty("db.user", postgres.getUsername());
-        properties.setProperty("db.password", postgres.getPassword());
-        properties.setProperty("liquibase.change-log", "db/migration/changelog.xml");
-        properties.setProperty("liquibase.default-schema", "finance");
-
-
-        PostgresDataSource.initDB(properties);
+        PostgresDataSource.initDB(TestContainerConfig.getProperties());
 
         try (var connection = PostgresDataSource.getConnection()) {
             Database database = DatabaseFactory.getInstance()
@@ -87,9 +69,7 @@ class UserServiceImplTest {
 
         userService.delete("delete@example.com");
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            userService.findByEmail("delete@example.com");
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> userService.findByEmail("delete@example.com"));
         assertEquals("Email: delete@example.com not found", exception.getMessage(), "Exception message should match");
     }
 }

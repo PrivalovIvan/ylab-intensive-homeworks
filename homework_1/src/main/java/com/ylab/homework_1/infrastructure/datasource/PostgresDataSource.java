@@ -1,6 +1,5 @@
 package com.ylab.homework_1.infrastructure.datasource;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -15,7 +14,8 @@ public class PostgresDataSource {
         url = properties.getProperty("db.url");
         username = properties.getProperty("db.user");
         password = properties.getProperty("db.password");
-        if(url == null || username == null || password == null) {
+
+        if (url == null || username == null || password == null) {
             throw new IllegalArgumentException("Error receiving data");
         }
     }

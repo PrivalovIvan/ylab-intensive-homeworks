@@ -5,8 +5,6 @@ import com.ylab.homework_1.infrastructure.repository.*;
 import com.ylab.homework_1.infrastructure.service.*;
 import com.ylab.homework_1.ui.console.ConsoleApp;
 import com.ylab.homework_1.usecase.service.*;
-import liquibase.Contexts;
-import liquibase.LabelExpression;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
@@ -22,7 +20,6 @@ public class Homework1Application {
         try {
             Properties properties = loadProperties();
             PostgresDataSource.initDB(properties);
-            initializeLiquibase(properties);
             NotificationService notificationService = new NotificationServiceImpl();
             UserService userService = new UserServiceImpl(new UserRepositoryImpl());
             BudgetService budgetService = new BudgetServiceImpl(new BudgetRepositoryImpl(), notificationService);

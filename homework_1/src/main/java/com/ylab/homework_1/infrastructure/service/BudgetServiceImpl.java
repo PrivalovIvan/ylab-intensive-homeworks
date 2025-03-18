@@ -38,7 +38,12 @@ public class BudgetServiceImpl implements BudgetService {
         if (budgetOpt.isPresent()) {
             Budget budget = budgetOpt.get();
             BigDecimal newSpent = budget.getSpent().add(amount);
-            Budget updatedBudget = new Budget(email, month, budget.getBudget(), newSpent);
+            Budget updatedBudget = Budget.builder()
+                    .email(email)
+                    .yearMonth(month)
+                    .budget(budget.getBudget())
+                    .spent(newSpent)
+                    .build();
             budgetRepository.update(updatedBudget);
             checkAndNotify(email, month);
         } else {

@@ -1,7 +1,7 @@
 
 **Сначала:**
-1. перейдите в папку homework_1
-2. в терминале: docker-compose up -d
+1. Запуск контейнера с бд: docker-compose up -d
+2. Запуск liquibase и применение миграции:  ./gradlew update 
 
 **Затем:**
 
@@ -12,7 +12,12 @@
 **или**
 
 **запуск тестов**
-1. ./gradlew clean test
+1. ./gradlew test
 2. отчет: open build/reports/tests/test/index.html
 3. покрытие смотрел через intelliJ "run 'test' with coverage"(предварительно убрав пакет ui из результатов)
 
+Исправления: 
+1. добавлены uuid для всех сущностей с генерацией в бд.
+2. добвлен builder для Goal, Budget, Transaction
+3. добавлен отдельный конфиг класс для тестов 
+4. инициализация liquibase вынесена в build.gradle.kts 

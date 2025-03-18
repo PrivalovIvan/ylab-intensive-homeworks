@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 public class UserDTO {
-    private Long id;
+    private UUID uuid;
     private String name;
     private String email;
     private String password;
@@ -24,6 +24,6 @@ public class UserDTO {
                     email: %s,
                     password: %s,
                     role: %s
-                """.formatted(id, name, email, password, role);
+                """.formatted(uuid, name, email, password, role);
     }
 }

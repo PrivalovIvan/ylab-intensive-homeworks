@@ -17,47 +17,28 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class AdministrationServiceImplTest {
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("finance_db")
-            .withUsername("finance_user")
-            .withPassword("finance_password");
-
     private static AdministrationServiceImpl adminService;
     private static UserServiceImpl userService;
     private static TransactionServiceImpl transactionService;
 
     @BeforeAll
     static void setUp() throws Exception {
-        Properties properties = new Properties();
-        properties.setProperty("db.url", postgres.getJdbcUrl());
-        properties.setProperty("db.user", postgres.getUsername());
-        properties.setProperty("db.password", postgres.getPassword());
-        properties.setProperty("liquibase.change-log", "db/migration/changelog.xml");
-        properties.setProperty("liquibase.default-schema", "finance");
-
-        PostgresDataSource.initDB(properties);
+        PostgresDataSource.initDB(TestContainerConfig.getProperties());
 
         try (var connection = PostgresDataSource.getConnection()) {
             Database database = DatabaseFactory.getInstance()
                     .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-//            database.setDefaultSchemaName("finance");
             Liquibase liquibase = new Liquibase("db/migration/changelog.xml", new ClassLoaderResourceAccessor(), database);
             liquibase.update();
         }
@@ -66,12 +47,15 @@ class AdministrationServiceImplTest {
         transactionService = new TransactionServiceImpl(new TransactionRepositoryImpl());
         adminService = new AdministrationServiceImpl(userService, transactionService);
 
-        userService.register(new UserDTO(null, "testUser", "test@example.com", "password", Role.USER));
+        userService.register(new UserDTO(null, "testUser", "testt@example.com", "password", Role.USER));
+
     }
 
     @Test
     void testFindAllUsers() throws SQLException {
         List<UserDTO> users = adminService.findAllUsers();
+        System.out.println(userService.findAll());
+
         assertFalse(users.isEmpty(), "List of users should not be empty");
         assertEquals(5, users.size(), "Should return one user");
         assertEquals("bob@example.com", users.get(0).getEmail(), "Email should match");
@@ -80,14 +64,20 @@ class AdministrationServiceImplTest {
 
     @Test
     void testFindAllTransactionsOfUsers() throws SQLException {
-        TransactionDTO transaction = new TransactionDTO(null, "test@example.com", TransactionType.INCOME,
-                BigDecimal.valueOf(100), "Test", null, LocalDate.now(), "Test transaction");
+        TransactionDTO transaction = TransactionDTO.builder()
+                .email("testt@example.com")
+                .type(TransactionType.INCOME)
+                .amount(BigDecimal.valueOf(100))
+                .category("Test")
+                .date(LocalDate.now())
+                .description("Test transaction").build();
         transactionService.createTransaction(transaction);
 
-        List<TransactionDTO> transactions = adminService.findAllTransactionsOfUsers("test@example.com");
+        List<TransactionDTO> transactions = adminService.findAllTransactionsOfUsers("testt@example.com");
         assertFalse(transactions.isEmpty(), "List of transactions should not be empty");
         assertEquals(1, transactions.size(), "Should return one transaction");
         assertEquals(new BigDecimal("100.00"), transactions.get(0).getAmount(), "Amount should match");
+        transactionService.deleteTransaction("test@example.com", transactions.get(0).getUuid());
     }
 
     @Test
@@ -100,17 +90,13 @@ class AdministrationServiceImplTest {
 
         adminService.deleteUser("delete@example.com");
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            userService.findByEmail("delete@example.com");
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> userService.findByEmail("delete@example.com"));
         assertEquals("Email: delete@example.com not found", exception.getMessage());
     }
 
     @Test
     void testDeleteUserNotFound() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            adminService.deleteUser("nonexistent@example.com");
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> adminService.deleteUser("nonexistent@example.com"));
         assertEquals("Email: nonexistent@example.com not found", exception.getMessage());
     }
 
@@ -118,9 +104,7 @@ class AdministrationServiceImplTest {
     void testDeleteAdminUser() throws SQLException {
         userService.register(new UserDTO(null, "admin2", "admin2@example.com", "adminpass", Role.ADMIN));
 
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            adminService.deleteUser("admin2@example.com");
-        });
+        Exception exception = assertThrows(IllegalStateException.class, () -> adminService.deleteUser("admin2@example.com"));
         assertEquals("Cannot delete an admin user: admin2@example.com", exception.getMessage());
     }
 }

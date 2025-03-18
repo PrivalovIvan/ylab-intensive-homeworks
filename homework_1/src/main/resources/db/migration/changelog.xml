@@ -5,9 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
-    <changeSet id="000" author="ivan">
+    <changeSet id="000" author="ivanprivalov">
         <sql>
+            CREATE SCHEMA IF NOT EXISTS liquibase_tables;
             CREATE SCHEMA IF NOT EXISTS finance;
+            CREATE
+            EXTENSION IF NOT EXISTS "pgcrypto";
         </sql>
     </changeSet>
 

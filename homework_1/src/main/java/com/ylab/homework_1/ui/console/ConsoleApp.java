@@ -17,6 +17,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.UUID;
 
 @Data
 @RequiredArgsConstructor
@@ -198,19 +199,19 @@ public class ConsoleApp {
                     case 1 -> {
                         System.out.print("New name: ");
                         String name = scanner.nextLine();
-                        currentUser = userService.updateUser(currentUser.getId(), name, null, null);
+                        currentUser = userService.updateUser(currentUser.getUuid(), name, null, null);
                         System.out.println("Name update successfully");
                     }
                     case 2 -> {
                         System.out.print("New email: ");
                         String email = scanner.nextLine();
-                        currentUser = userService.updateUser(currentUser.getId(), null, email, null);
+                        currentUser = userService.updateUser(currentUser.getUuid(), null, email, null);
                         System.out.println("Email update successfully");
                     }
                     case 3 -> {
                         System.out.print("New password: ");
                         String password = scanner.nextLine();
-                        currentUser = userService.updateUser(currentUser.getId(), null, null, password);
+                        currentUser = userService.updateUser(currentUser.getUuid(), null, null, password);
                         System.out.println("Password update successfully");
                     }
                     case 4 -> {
@@ -227,7 +228,7 @@ public class ConsoleApp {
                             return;
                         }
                     }
-                    case 5 -> System.out.println(userService.findByUuid(currentUser.getId()));
+                    case 5 -> System.out.println(userService.findByUuid(currentUser.getUuid()));
                     case 0 -> {
                         return;
                     }
@@ -288,7 +289,7 @@ public class ConsoleApp {
             if (nameGoal.isEmpty()) nameGoal = null;
             else {
                 try {
-                    goalService.getGoalByName(currentUser.getEmail(), nameGoal); // Проверка существования цели
+                    goalService.getGoalByName(currentUser.getEmail(), nameGoal);
                 } catch (IllegalArgumentException e) {
                     System.out.println("Goal not found, transaction will be created without goal.");
                     nameGoal = null;
@@ -306,7 +307,15 @@ public class ConsoleApp {
         String description = scanner.nextLine();
         LocalDate date = LocalDate.now();
 
-        TransactionDTO transactionDTO = new TransactionDTO(null, currentUser.getEmail(), type, amount, category, nameGoal, date, description);
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .email(currentUser.getEmail())
+                .type(type)
+                .amount(amount)
+                .category(category)
+                .nameGoal(nameGoal)
+                .date(date)
+                .description(description)
+                .build();
 
         try {
             transactionService.createTransaction(transactionDTO);
@@ -323,8 +332,7 @@ public class ConsoleApp {
 
     private void updateTransaction() {
         System.out.print("Id transaction: ");
-        Long id = scanner.nextLong();
-        scanner.nextLine();
+        UUID id = UUID.fromString(scanner.nextLine());
         System.out.print("New Amount: ");
         BigDecimal newAmount = scanner.nextBigDecimal();
         scanner.nextLine();
@@ -334,15 +342,11 @@ public class ConsoleApp {
         String newDescription = scanner.nextLine();
 
         try {
-            TransactionDTO existingTransaction = transactionService.findAllTransactionUser(currentUser.getEmail())
+            transactionService.findAllTransactionUser(currentUser.getEmail())
                     .stream()
-                    .filter(t -> t.getId().equals(id))
+                    .filter(t -> t.getUuid().equals(id))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
-            TransactionDTO updatedTransaction = new TransactionDTO(
-                    id, currentUser.getEmail(), existingTransaction.getType(), newAmount, newCategory,
-                    existingTransaction.getNameGoal(), existingTransaction.getDate(), newDescription
-            );
             transactionService.updateAmount(currentUser.getEmail(), id, newAmount);
             transactionService.updateCategory(currentUser.getEmail(), id, newCategory);
             transactionService.updateDescription(currentUser.getEmail(), id, newDescription);
@@ -354,7 +358,7 @@ public class ConsoleApp {
 
     private void deleteTransaction() {
         System.out.print("Id transaction: ");
-        Long idTransaction = scanner.nextLong();
+        UUID idTransaction = UUID.fromString(scanner.nextLine());
         scanner.nextLine();
         try {
             transactionService.deleteTransaction(currentUser.getEmail(), idTransaction);
@@ -462,7 +466,12 @@ public class ConsoleApp {
         System.out.print("Enter budget limit: ");
         BigDecimal budgetLimit = scanner.nextBigDecimal();
         scanner.nextLine();
-        BudgetDTO budgetDTO = new BudgetDTO(currentUser.getEmail(), yearMonth, budgetLimit, BigDecimal.ZERO);
+        BudgetDTO budgetDTO = BudgetDTO.builder()
+                .email(currentUser.getEmail())
+                .yearMonth(yearMonth)
+                .budget(budgetLimit)
+                .spent(BigDecimal.ZERO)
+                .build();
         try {
             budgetService.createBudget(budgetDTO);
         } catch (SQLException e) {
@@ -544,7 +553,12 @@ public class ConsoleApp {
         System.out.print("Amount goal: ");
         BigDecimal amount = scanner.nextBigDecimal();
         scanner.nextLine();
-        GoalDTO goalDTO = new GoalDTO(currentUser.getEmail(), name, amount, BigDecimal.ZERO);
+        GoalDTO goalDTO = GoalDTO.builder()
+                .email(currentUser.getEmail())
+                .title(name)
+                .targetAmount(amount)
+                .savedAmount(BigDecimal.ZERO)
+                .build();
         try {
             goalService.createGoal(goalDTO);
             System.out.println("Goal created successfully");
@@ -576,7 +590,12 @@ public class ConsoleApp {
         try {
             GoalDTO existingGoal = goalService.getGoalByName(currentUser.getEmail(), name);
             BigDecimal newSavedAmount = existingGoal.getSavedAmount().add(amount);
-            GoalDTO updatedGoal = new GoalDTO(currentUser.getEmail(), name, existingGoal.getTargetAmount(), newSavedAmount);
+            GoalDTO updatedGoal = GoalDTO.builder()
+                    .email(currentUser.getEmail())
+                    .title(name)
+                    .targetAmount(existingGoal.getTargetAmount())
+                    .savedAmount(newSavedAmount)
+                    .build();
             goalService.updateGoal(updatedGoal);
             System.out.println("Goal updated successfully");
         } catch (SQLException e) {
@@ -671,6 +690,7 @@ public class ConsoleApp {
             System.out.println(e.getMessage());
         }
 
+        assert expensesByCategory != null;
         for (Map.Entry<String, BigDecimal> entry : expensesByCategory.entrySet()) {
             System.out.println(entry.getKey() + ": " + entry.getValue());
         }

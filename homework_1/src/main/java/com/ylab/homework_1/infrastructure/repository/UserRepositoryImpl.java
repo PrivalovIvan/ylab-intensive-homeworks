@@ -3,7 +3,6 @@ package com.ylab.homework_1.infrastructure.repository;
 import com.ylab.homework_1.common.Role;
 import com.ylab.homework_1.domain.model.User;
 import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
-import com.ylab.homework_1.infrastructure.mapper.UserMapper;
 import com.ylab.homework_1.usecase.repository.UserRepository;
 
 import java.sql.Connection;
@@ -34,7 +33,7 @@ public class UserRepositoryImpl implements UserRepository {
             preparedStatement.setString(1, user.getName());
             preparedStatement.setString(2, user.getEmail());
             preparedStatement.setString(3, user.getPassword());
-            preparedStatement.setLong(4, user.getId());
+            preparedStatement.setObject(4, user.getUuid());
             preparedStatement.executeUpdate();
         }
     }
@@ -55,11 +54,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> getById(Long id) throws SQLException {
+    public Optional<User> getById(UUID id) throws SQLException {
         String selectUserByEmailSQL = "SELECT * FROM finance.users WHERE id = ?";
         try (Connection connection = PostgresDataSource.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(selectUserByEmailSQL);
-            preparedStatement.setLong(1, id);
+            preparedStatement.setObject(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
                     return Optional.of(resultSetToUser(resultSet));
@@ -97,11 +96,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     private static User resultSetToUser(ResultSet resultSet) throws SQLException {
         return new User(
-                resultSet.getLong("id"),
+                resultSet.getObject(1, UUID.class),
                 resultSet.getString("name"),
                 resultSet.getString("email"),
                 resultSet.getString("password"),
                 Role.valueOf(resultSet.getString("role")));
     }
-
 }

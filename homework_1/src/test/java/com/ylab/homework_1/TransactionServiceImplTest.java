@@ -12,40 +12,22 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.junit.jupiter.Container;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class TransactionServiceImplTest {
-
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("finance_db")
-            .withUsername("finance_user")
-            .withPassword("finance_password");
-
     private static TransactionServiceImpl transactionService;
 
     @BeforeAll
     static void setUp() throws Exception {
-        Properties properties = new Properties();
-        properties.setProperty("db.url", postgres.getJdbcUrl());
-        properties.setProperty("db.user", postgres.getUsername());
-        properties.setProperty("db.password", postgres.getPassword());
-        properties.setProperty("liquibase.change-log", "db/migration/changelog.xml");
-        properties.setProperty("liquibase.default-schema", "finance");
-
-
-        PostgresDataSource.initDB(properties);
+        PostgresDataSource.initDB(TestContainerConfig.getProperties());
 
         try (var connection = PostgresDataSource.getConnection()) {
             Database database = DatabaseFactory.getInstance()
@@ -61,6 +43,7 @@ class TransactionServiceImplTest {
     void testCreateAndFindTransactions() throws SQLException {
         TransactionDTO transaction = new TransactionDTO(null, "test@example.com", TransactionType.INCOME,
                 BigDecimal.valueOf(100), "Test", null, LocalDate.now(), "Test transaction");
+
         transactionService.createTransaction(transaction);
 
         List<TransactionDTO> transactions = transactionService.findAllTransactionUser("test@example.com");

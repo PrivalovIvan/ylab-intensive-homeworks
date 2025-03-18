@@ -6,13 +6,9 @@
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
     <changeSet id="001-create-tables" author="ivanprivalov">
-        <createSequence sequenceName="user_id_seq"
-                        schemaName="finance"
-                        startValue="1"
-                        incrementBy="1"/>
 
         <createTable tableName="users" schemaName="finance">
-            <column name="id" type="BIGINT" defaultValueComputed="nextval('finance.user_id_seq')">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="name" type="varchar(255)">
@@ -29,17 +25,9 @@
             </column>
         </createTable>
 
-        <createSequence sequenceName="transaction_id_seq"
-                        schemaName="finance"
-                        startValue="1"
-                        incrementBy="1"/>
-
         <createTable tableName="transactions" schemaName="finance">
-            <column name="id" type="bigint" defaultValueComputed="nextval('finance.transaction_id_seq')">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="uuid" type="uuid">
-                <constraints nullable="false" unique="true"/>
             </column>
             <column name="email" type="varchar(255)">
                 <constraints nullable="false"/>
@@ -59,6 +47,9 @@
         </createTable>
 
         <createTable tableName="budgets" schemaName="finance">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false" unique="true"/>
+            </column>
             <column name="email" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
@@ -74,6 +65,9 @@
         </createTable>
 
         <createTable tableName="goals" schemaName="finance">
+            <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
             <column name="email" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>

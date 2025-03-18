@@ -4,13 +4,13 @@ import com.ylab.homework_1.domain.model.Goal;
 import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
 import com.ylab.homework_1.usecase.repository.GoalRepository;
 
-import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class GoalRepositoryImpl implements GoalRepository {
 
@@ -83,11 +83,12 @@ public class GoalRepositoryImpl implements GoalRepository {
     }
 
     private Goal resultSetToGoal(ResultSet resultSet) throws SQLException {
-        return new Goal(
-                resultSet.getString("email"),
-                resultSet.getString("title"),
-                resultSet.getBigDecimal("target_amount"),
-                resultSet.getBigDecimal("saved_amount")
-        );
+        return Goal.builder()
+                .uuid(resultSet.getObject(1, UUID.class))
+                .email(resultSet.getString("email"))
+                .title(resultSet.getString("title"))
+                .targetAmount(resultSet.getBigDecimal("target_amount"))
+                .savedAmount(resultSet.getBigDecimal("saved_amount"))
+                .build();
     }
 }

@@ -12,14 +12,11 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,25 +24,12 @@ import static org.mockito.Mockito.*;
 @Testcontainers
 class GoalServiceImplTest {
 
-    @Container
-    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("finance_db")
-            .withUsername("finance_user")
-            .withPassword("finance_password");
-
     private static GoalServiceImpl goalService;
     private static NotificationService notificationService;
 
     @BeforeAll
     static void setUp() throws Exception {
-        Properties properties = new Properties();
-        properties.setProperty("db.url", postgres.getJdbcUrl());
-        properties.setProperty("db.user", postgres.getUsername());
-        properties.setProperty("db.password", postgres.getPassword());
-        properties.setProperty("liquibase.change-log", "db/migration/changelog.xml");
-        properties.setProperty("liquibase.default-schema", "finance");
-
-        PostgresDataSource.initDB(properties);
+        PostgresDataSource.initDB(TestContainerConfig.getProperties());
 
         try (var connection = PostgresDataSource.getConnection()) {
             Database database = DatabaseFactory.getInstance()
@@ -60,7 +44,12 @@ class GoalServiceImplTest {
 
     @Test
     void testCreateAndFindGoals() throws SQLException {
-        GoalDTO goal = new GoalDTO("test@example.com", "New Car", BigDecimal.valueOf(10000), BigDecimal.ZERO);
+        GoalDTO goal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("New Car")
+                .targetAmount(BigDecimal.valueOf(10000))
+                .savedAmount(BigDecimal.ZERO)
+                .build();
         goalService.createGoal(goal);
 
         List<GoalDTO> goals = goalService.getUserGoals("test@example.com");
@@ -71,10 +60,20 @@ class GoalServiceImplTest {
 
     @Test
     void testUpdateGoal() throws SQLException {
-        GoalDTO goal = new GoalDTO("test@example.com", "New Car", BigDecimal.valueOf(10000), BigDecimal.ZERO);
+        GoalDTO goal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("New Car")
+                .targetAmount(BigDecimal.valueOf(10000))
+                .savedAmount(BigDecimal.ZERO)
+                .build();
         goalService.createGoal(goal);
 
-        GoalDTO updatedGoal = new GoalDTO("test@example.com", "New Car", BigDecimal.valueOf(15000), BigDecimal.valueOf(5000));
+        GoalDTO updatedGoal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("New Car")
+                .targetAmount(BigDecimal.valueOf(15000))
+                .savedAmount(BigDecimal.valueOf(5000))
+                .build();
         goalService.updateGoal(updatedGoal);
 
         GoalDTO retrievedGoal = goalService.getGoalByName("test@example.com", "New Car");
@@ -84,7 +83,13 @@ class GoalServiceImplTest {
 
     @Test
     void testDeleteGoal() throws SQLException {
-        GoalDTO goal = new GoalDTO("test@example.com", "New Car", BigDecimal.valueOf(10000), BigDecimal.ZERO);
+        GoalDTO goal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("New Car")
+                .targetAmount(BigDecimal.valueOf(10000))
+                .savedAmount(BigDecimal.ZERO)
+                .build();
+        goalService.createGoal(goal);
         goalService.createGoal(goal);
         goalService.deleteGoal("test@example.com", "New Car");
 
@@ -94,7 +99,13 @@ class GoalServiceImplTest {
 
     @Test
     void testCheckAndNotify() throws SQLException {
-        GoalDTO goal = new GoalDTO("test@example.com", "Vacation", BigDecimal.valueOf(5000), BigDecimal.valueOf(5000));
+        GoalDTO goal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("Vacation")
+                .targetAmount(BigDecimal.valueOf(5000))
+                .savedAmount(BigDecimal.valueOf(5000))
+                .build();
+        goalService.createGoal(goal);
         goalService.createGoal(goal);
         goalService.checkAndNotify("test@example.com", "Vacation");
 

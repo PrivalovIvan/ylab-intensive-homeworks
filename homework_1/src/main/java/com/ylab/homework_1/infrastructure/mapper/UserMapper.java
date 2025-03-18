@@ -6,8 +6,8 @@ import com.ylab.homework_1.usecase.mapper.Mapper;
 
 public class UserMapper {
     public static final Mapper<User, UserDTO> toUser = userDTO ->
-            new User(userDTO.getId() ,userDTO.getName(), userDTO.getEmail(), userDTO.getPassword(), userDTO.getRole());
+            new User(userDTO.getUuid() ,userDTO.getName(), userDTO.getEmail(), userDTO.getPassword(), userDTO.getRole());
 
     public static final Mapper<UserDTO, User> toUserDTO = user ->
-            new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getPassword(), user.getRole());
+            new UserDTO(user.getUuid(), user.getName(), user.getEmail(), user.getPassword(), user.getRole());
 }

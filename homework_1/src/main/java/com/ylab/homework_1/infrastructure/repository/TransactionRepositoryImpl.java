@@ -17,17 +17,19 @@ import java.util.UUID;
 public class TransactionRepositoryImpl implements TransactionRepository {
     @Override
     public void save(Transaction transaction) throws SQLException {
-        String insertTransactionSQL = "INSERT INTO finance.transactions (uuid, email, type, amount, category, name_goal, date, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String insertTransactionSQL = "" +
+                "INSERT INTO finance.transactions (email, type, amount, category, name_goal, date, description) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertTransactionSQL)) {
-            preparedStatement.setObject(1, UUID.randomUUID()); // Генерируем UUID
-            preparedStatement.setString(2, transaction.getEmail());
-            preparedStatement.setString(3, transaction.getType().toString());
-            preparedStatement.setBigDecimal(4, transaction.getAmount());
-            preparedStatement.setString(5, transaction.getCategory());
-            preparedStatement.setString(6, transaction.getNameGoal());
-            preparedStatement.setDate(7, java.sql.Date.valueOf(transaction.getDate()));
-            preparedStatement.setString(8, transaction.getDescription());
+            preparedStatement.setString(1, transaction.getEmail());
+            preparedStatement.setString(2, transaction.getType().toString());
+            preparedStatement.setBigDecimal(3, transaction.getAmount());
+            preparedStatement.setString(4, transaction.getCategory());
+            preparedStatement.setString(5, transaction.getNameGoal());
+            preparedStatement.setDate(6, java.sql.Date.valueOf(transaction.getDate()));
+            preparedStatement.setString(7, transaction.getDescription());
             preparedStatement.executeUpdate();
         }
     }
@@ -40,11 +42,11 @@ public class TransactionRepositoryImpl implements TransactionRepository {
             preparedStatement.setBigDecimal(1, transaction.getAmount());
             preparedStatement.setString(2, transaction.getCategory());
             preparedStatement.setString(3, transaction.getDescription());
-            preparedStatement.setLong(4, transaction.getId());
+            preparedStatement.setObject(4, transaction.getUuid());
             preparedStatement.setString(5, transaction.getEmail());
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected == 0) {
-                throw new SQLException("Transaction with id " + transaction.getId() + " not found or email mismatch");
+                throw new SQLException("Transaction with id " + transaction.getUuid() + " not found or email mismatch");
             }
         }
     }
@@ -66,11 +68,11 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
 
     @Override
-    public Optional<Transaction> getById(Long id) throws SQLException {
+    public Optional<Transaction> getById(UUID id) throws SQLException {
         String selectTransactionSQL = "SELECT * FROM finance.transactions WHERE id = ?";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(selectTransactionSQL)) {
-            preparedStatement.setLong(1, id);
+            preparedStatement.setObject(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
                     return Optional.of(resultSetToTransaction(resultSet));
@@ -81,12 +83,12 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
 
     @Override
-    public void delete(String email, Long id) throws SQLException {
+    public void delete(String email, UUID id) throws SQLException {
         String deleteTransactionSQL = "DELETE FROM finance.transactions WHERE email = ? AND id = ?";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(deleteTransactionSQL)) {
             preparedStatement.setString(1, email);
-            preparedStatement.setLong(2, id);
+            preparedStatement.setObject(2, id);
             preparedStatement.executeUpdate();
         }
     }
@@ -143,15 +145,15 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
 
     private Transaction resultSetToTransaction(ResultSet resultSet) throws SQLException {
-        return new Transaction(
-                resultSet.getLong("id"),
-                resultSet.getString("email"),
-                TransactionType.valueOf(resultSet.getString("type")),
-                resultSet.getBigDecimal("amount"),
-                resultSet.getString("category"),
-                resultSet.getString("name_goal"),
-                resultSet.getDate("date").toLocalDate(),
-                resultSet.getString("description")
-        );
+        return Transaction.builder()
+                .uuid(resultSet.getObject(1, UUID.class))
+                .email(resultSet.getString("email"))
+                .type(TransactionType.valueOf(resultSet.getString("type")))
+                .amount(resultSet.getBigDecimal("amount"))
+                .category(resultSet.getString("category"))
+                .nameGoal(resultSet.getString("name_goal"))
+                .date(resultSet.getDate("date").toLocalDate())
+                .description(resultSet.getString("description"))
+                .build();
     }
 }

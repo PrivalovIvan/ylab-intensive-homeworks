@@ -32,6 +32,7 @@ public class GoalServiceImpl implements GoalService {
         Optional<Goal> existingGoal = goalRepository.findByName(goal.getEmail(), goal.getTitle());
         if (existingGoal.isPresent()) {
             Goal updatedGoal = new Goal(
+                    goal.getUuid(),
                     goal.getEmail(),
                     goal.getTitle(),
                     goal.getTargetAmount(),
@@ -76,7 +77,7 @@ public class GoalServiceImpl implements GoalService {
         Optional<GoalDTO> goalOpt = Optional.ofNullable(getGoalByName(transactionDTO.getEmail(), transactionDTO.getNameGoal()));
         goalOpt.ifPresent(goalDTO -> {
             BigDecimal newSavedAmount = goalDTO.getSavedAmount().add(transactionDTO.getAmount());
-            GoalDTO updatedGoal = new GoalDTO(goalDTO.getEmail(), goalDTO.getTitle(), goalDTO.getTargetAmount(), newSavedAmount);
+            GoalDTO updatedGoal = new GoalDTO(goalDTO.getUuid() ,goalDTO.getEmail(), goalDTO.getTitle(), goalDTO.getTargetAmount(), newSavedAmount);
             try {
                 updateGoal(updatedGoal);
                 checkAndNotify(transactionDTO.getEmail(), transactionDTO.getNameGoal());

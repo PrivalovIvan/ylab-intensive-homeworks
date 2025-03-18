@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
@@ -25,28 +26,28 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void updateAmount(String email, Long id, BigDecimal amount) throws SQLException {
+    public void updateAmount(String email, UUID id, BigDecimal amount) throws SQLException {
         Transaction transaction = getTransactionOrThrow(email, id);
         transaction.setAmount(amount);
         transactionRepository.update(transaction);
     }
 
     @Override
-    public void updateCategory(String email, Long id, String category) throws SQLException {
+    public void updateCategory(String email, UUID id, String category) throws SQLException {
         Transaction transaction = getTransactionOrThrow(email, id);
         transaction.setCategory(category);
         transactionRepository.update(transaction);
     }
 
     @Override
-    public void updateDescription(String email, Long id, String description) throws SQLException {
+    public void updateDescription(String email, UUID id, String description) throws SQLException {
         Transaction transaction = getTransactionOrThrow(email, id);
         transaction.setDescription(description);
         transactionRepository.update(transaction);
     }
 
     @Override
-    public void deleteTransaction(String email, Long id) throws SQLException {
+    public void deleteTransaction(String email, UUID id) throws SQLException {
         transactionRepository.delete(email, id);
     }
 
@@ -78,7 +79,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .toList();
     }
 
-    private Transaction getTransactionOrThrow(String email, Long id) throws SQLException {
+    private Transaction getTransactionOrThrow(String email, UUID id) throws SQLException {
         return transactionRepository.getById(id)
                 .filter(t -> t.getEmail().equals(email))
                 .orElseThrow(() -> new IllegalArgumentException("Transaction with id " + id + " not found for email " + email));

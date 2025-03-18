@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 @RequiredArgsConstructor
 public class User {
-    private final Long id;
+    private final UUID uuid;
     private final String name;
     private final String email;
     private final String password;
@@ -24,6 +24,6 @@ public class User {
                     Email: %s,
                     Password: %s,
                     Role: %s
-                """.formatted(id, name, email, password, role.name());
+                """.formatted(uuid, name, email, password, role.name());
     }
 }

@@ -5,6 +5,7 @@ import com.ylab.homework_1.domain.model.User;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserRepository {
     void save(User user) throws SQLException;
@@ -13,7 +14,7 @@ public interface UserRepository {
 
     Optional<User> getByEmail(String email) throws SQLException;
 
-    Optional<User> getById(Long uuid) throws SQLException;
+    Optional<User> getById(UUID uuid) throws SQLException;
 
     void delete(String email) throws SQLException;
 
