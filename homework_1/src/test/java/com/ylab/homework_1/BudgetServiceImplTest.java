@@ -50,7 +50,8 @@ class BudgetServiceImplTest {
                 .build();
         budgetService.createBudget(budget);
 
-        BudgetDTO retrievedBudget = BudgetMapper.toBudgetDTO.apply(budgetService.getBudget("test@example.com", YearMonth.of(2025, 3)).get());
+        BudgetDTO retrievedBudget = budgetService.getBudget("test@example.com", YearMonth.of(2025, 3))
+                .orElseThrow(RuntimeException::new);
         assertNotNull(retrievedBudget, "Budget should not be null");
         assertEquals(new BigDecimal("1000.00"), retrievedBudget.getBudget(), "Budget amount should match");
         assertEquals(new BigDecimal("0.00"), retrievedBudget.getSpent(), "Spent amount should be zero");
@@ -68,7 +69,8 @@ class BudgetServiceImplTest {
 
         budgetService.addExpense("test@example.com", YearMonth.of(2025, 5), BigDecimal.valueOf(600));
 
-        BudgetDTO updatedBudget = BudgetMapper.toBudgetDTO.apply(budgetService.getBudget("test@example.com", YearMonth.of(2025, 5)).get());
+        BudgetDTO updatedBudget = budgetService.getBudget("test@example.com", YearMonth.of(2025, 5))
+                .orElseThrow(RuntimeException::new);
         assertEquals(new BigDecimal("600.00"), updatedBudget.getSpent(), "Spent amount should match");
         assertTrue(BudgetMapper.toBudget.apply(updatedBudget).isExceeded(), "Budget should be exceeded");
     }

@@ -3,7 +3,7 @@ package com.ylab.homework_1.infrastructure.repository;
 import com.ylab.homework_1.common.TransactionType;
 import com.ylab.homework_1.domain.model.Transaction;
 import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
-import com.ylab.homework_1.usecase.repository.TransactionRepository;
+import com.ylab.homework_1.domain.repository.TransactionRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,9 +17,9 @@ import java.util.UUID;
 public class TransactionRepositoryImpl implements TransactionRepository {
     @Override
     public void save(Transaction transaction) throws SQLException {
-        String insertTransactionSQL = "" +
-                "INSERT INTO finance.transactions (email, type, amount, category, name_goal, date, description) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String insertTransactionSQL =
+                "INSERT INTO finance.transactions (email_user, type, amount, category, name_goal, date, description ) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertTransactionSQL)) {
@@ -36,7 +36,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
     @Override
     public void update(Transaction transaction) throws SQLException {
-        String updateTransactionSQL = "UPDATE finance.transactions SET amount = ?, category = ?, description = ? WHERE id = ? AND email = ?";
+        String updateTransactionSQL = "UPDATE finance.transactions SET amount = ?, category = ?, description = ? WHERE id = ? AND email_user = ?";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(updateTransactionSQL)) {
             preparedStatement.setBigDecimal(1, transaction.getAmount());
@@ -54,7 +54,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     @Override
     public List<Transaction> getTransactionsByUserEmail(String email) throws SQLException {
         List<Transaction> transactions = new ArrayList<>();
-        String getTransactionSQL = "SELECT * FROM finance.transactions WHERE email = ?";
+        String getTransactionSQL = "SELECT * FROM finance.transactions WHERE email_user = ?";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(getTransactionSQL)) {
             preparedStatement.setString(1, email);
@@ -84,7 +84,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
     @Override
     public void delete(String email, UUID id) throws SQLException {
-        String deleteTransactionSQL = "DELETE FROM finance.transactions WHERE email = ? AND id = ?";
+        String deleteTransactionSQL = "DELETE FROM finance.transactions WHERE email_user = ? AND id = ?";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(deleteTransactionSQL)) {
             preparedStatement.setString(1, email);
@@ -95,7 +95,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
     @Override
     public List<Transaction> getTransactionsByUserEmailFilterDate(String email, LocalDate date) throws SQLException {
-        String getTransactionSQL = "SELECT * FROM finance.transactions WHERE email = ? AND date = ?";
+        String getTransactionSQL = "SELECT * FROM finance.transactions WHERE email_user = ? AND date = ?";
         List<Transaction> transactions = new ArrayList<>();
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(getTransactionSQL)) {
@@ -112,7 +112,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
     @Override
     public List<Transaction> getTransactionsByUserEmailFilterCategory(String email, String category) throws SQLException {
-        String getTransactionSQL = "SELECT * FROM finance.transactions WHERE email = ? AND category = ?";
+        String getTransactionSQL = "SELECT * FROM finance.transactions WHERE email_user = ? AND category = ?";
         List<Transaction> transactions = new ArrayList<>();
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(getTransactionSQL)) {
@@ -129,7 +129,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
     @Override
     public List<Transaction> getTransactionsByUserEmailFilterType(String email, TransactionType type) throws SQLException {
-        String getTransactionSQL = "SELECT * FROM finance.transactions WHERE email = ? AND type = ?";
+        String getTransactionSQL = "SELECT * FROM finance.transactions WHERE email_user = ? AND type = ?";
         List<Transaction> transactions = new ArrayList<>();
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(getTransactionSQL)) {
@@ -147,7 +147,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     private Transaction resultSetToTransaction(ResultSet resultSet) throws SQLException {
         return Transaction.builder()
                 .uuid(resultSet.getObject(1, UUID.class))
-                .email(resultSet.getString("email"))
+                .email(resultSet.getString("email_user"))
                 .type(TransactionType.valueOf(resultSet.getString("type")))
                 .amount(resultSet.getBigDecimal("amount"))
                 .category(resultSet.getString("category"))

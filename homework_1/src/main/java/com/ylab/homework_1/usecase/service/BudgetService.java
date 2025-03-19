@@ -1,6 +1,5 @@
 package com.ylab.homework_1.usecase.service;
 
-import com.ylab.homework_1.domain.model.Budget;
 import com.ylab.homework_1.usecase.dto.BudgetDTO;
 import com.ylab.homework_1.usecase.dto.TransactionDTO;
 
@@ -12,7 +11,7 @@ import java.util.Optional;
 public interface BudgetService {
     void createBudget(BudgetDTO budgetDTO) throws SQLException;
 
-    Optional<Budget> getBudget(String email, YearMonth month) throws SQLException;
+    Optional<BudgetDTO> getBudget(String email, YearMonth month) throws SQLException;
 
     void addExpense(String email, YearMonth month, BigDecimal amount) throws SQLException;
 

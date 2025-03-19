@@ -4,7 +4,7 @@ import com.ylab.homework_1.domain.model.Budget;
 import com.ylab.homework_1.infrastructure.mapper.BudgetMapper;
 import com.ylab.homework_1.usecase.dto.BudgetDTO;
 import com.ylab.homework_1.usecase.dto.TransactionDTO;
-import com.ylab.homework_1.usecase.repository.BudgetRepository;
+import com.ylab.homework_1.domain.repository.BudgetRepository;
 import com.ylab.homework_1.usecase.service.BudgetService;
 import com.ylab.homework_1.usecase.service.NotificationService;
 
@@ -28,8 +28,8 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public Optional<Budget> getBudget(String email, YearMonth month) throws SQLException {
-        return budgetRepository.findByUserAndMonth(email, month);
+    public Optional<BudgetDTO> getBudget(String email, YearMonth month) throws SQLException {
+        return budgetRepository.findByUserAndMonth(email, month).map(BudgetMapper.toBudgetDTO::apply);
     }
 
     @Override

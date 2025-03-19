@@ -2,7 +2,7 @@ package com.ylab.homework_1.infrastructure.repository;
 
 import com.ylab.homework_1.domain.model.Budget;
 import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
-import com.ylab.homework_1.usecase.repository.BudgetRepository;
+import com.ylab.homework_1.domain.repository.BudgetRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,7 +17,7 @@ public class BudgetRepositoryImpl implements BudgetRepository {
 
     @Override
     public void save(Budget budget) throws SQLException {
-        String insertBudgetSQL = "INSERT INTO finance.budgets (email, year_month, budget, spent) VALUES (?, ?, ?, ?)";
+        String insertBudgetSQL = "INSERT INTO finance.budgets (email_user, year_month, budget, spent) VALUES (?, ?, ?, ?)";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertBudgetSQL)) {
             preparedStatement.setString(1, budget.getEmail());
@@ -30,7 +30,7 @@ public class BudgetRepositoryImpl implements BudgetRepository {
 
     @Override
     public void update(Budget budget) throws SQLException {
-        String updateBudgetSQL = "UPDATE finance.budgets SET spent = ? WHERE email = ? AND year_month = ?";
+        String updateBudgetSQL = "UPDATE finance.budgets SET spent = ? WHERE email_user = ? AND year_month = ?";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(updateBudgetSQL)) {
             preparedStatement.setBigDecimal(1, budget.getSpent());
@@ -42,7 +42,7 @@ public class BudgetRepositoryImpl implements BudgetRepository {
 
     @Override
     public Optional<Budget> findByUserAndMonth(String email, YearMonth yearMonth) throws SQLException {
-        String getUserAndMonth = "SELECT * FROM finance.budgets WHERE email = ? AND year_month = ?";
+        String getUserAndMonth = "SELECT * FROM finance.budgets WHERE email_user = ? AND year_month = ?";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(getUserAndMonth)) {
             preparedStatement.setString(1, email);
@@ -57,7 +57,7 @@ public class BudgetRepositoryImpl implements BudgetRepository {
 
     @Override
     public void delete(String email, YearMonth month) throws SQLException {
-        String deleteBudgetSQL = "DELETE FROM finance.budgets WHERE email = ? AND year_month = ?";
+        String deleteBudgetSQL = "DELETE FROM finance.budgets WHERE email_user = ? AND year_month = ?";
         try (var connection = PostgresDataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(deleteBudgetSQL)) {
             preparedStatement.setString(1, email);
@@ -69,7 +69,7 @@ public class BudgetRepositoryImpl implements BudgetRepository {
     private Budget setResultToBudget(ResultSet resultSet) throws SQLException {
         return Budget.builder()
                 .uuid(resultSet.getObject(1, UUID.class))
-                .email(resultSet.getString("email"))
+                .email(resultSet.getString("email_user"))
                 .yearMonth(YearMonth.parse(resultSet.getString("year_month"), FORMATTER))
                 .budget(resultSet.getBigDecimal("budget"))
                 .spent(resultSet.getBigDecimal("spent"))

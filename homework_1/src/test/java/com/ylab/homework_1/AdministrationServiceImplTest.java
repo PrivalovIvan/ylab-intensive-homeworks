@@ -57,7 +57,7 @@ class AdministrationServiceImplTest {
         System.out.println(userService.findAll());
 
         assertFalse(users.isEmpty(), "List of users should not be empty");
-        assertEquals(5, users.size(), "Should return one user");
+        assertEquals(6, users.size(), "Should return one user");
         assertEquals("bob@example.com", users.get(0).getEmail(), "Email should match");
         assertEquals(Role.USER, users.get(0).getRole(), "Role should be USER");
     }

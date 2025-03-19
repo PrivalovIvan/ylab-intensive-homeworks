@@ -3,7 +3,7 @@ package com.ylab.homework_1.infrastructure.repository;
 import com.ylab.homework_1.common.Role;
 import com.ylab.homework_1.domain.model.User;
 import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
-import com.ylab.homework_1.usecase.repository.UserRepository;
+import com.ylab.homework_1.domain.repository.UserRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

@@ -29,8 +29,10 @@
             <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="email" type="varchar(255)">
-                <constraints nullable="false"/>
+            <column name="email_user" type="varchar(255)">
+                <constraints nullable="false"
+                             foreignKeyName="transaction_email_user" references="finance.users(email)" deleteCascade="true"
+                />
             </column>
             <column name="type" type="varchar(255)">
                 <constraints nullable="false"/>
@@ -50,8 +52,10 @@
             <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false" unique="true"/>
             </column>
-            <column name="email" type="varchar(255)">
-                <constraints nullable="false"/>
+            <column name="email_user" type="varchar(255)">
+                <constraints nullable="false"
+                             foreignKeyName="budget_email_user" references="finance.users(email)" deleteCascade="true"
+                />
             </column>
             <column name="year_month" type="varchar(8)">
                 <constraints unique="true" nullable="false"/>
@@ -68,8 +72,10 @@
             <column name="id" type="uuid" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="email" type="varchar(255)">
-                <constraints nullable="false"/>
+            <column name="email_user" type="varchar(255)">
+                <constraints nullable="false"
+                             foreignKeyName="goal_email_user" references="finance.users(email)" deleteCascade="true"
+                />
             </column>
             <column name="title" type="varchar(255)">
                 <constraints nullable="false"/>

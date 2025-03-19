@@ -1,4 +1,4 @@
-package com.ylab.homework_1.usecase.repository;
+package com.ylab.homework_1.domain.repository;
 
 import com.ylab.homework_1.domain.model.Budget;
 

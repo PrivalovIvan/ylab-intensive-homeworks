@@ -16,4 +16,5 @@
 
     <include file="001-create-tables.xml" relativeToChangelogFile="true"/>
     <include file="002-insert-data.xml" relativeToChangelogFile="true"/>
+    <include file="003-insert-data-for-tests.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

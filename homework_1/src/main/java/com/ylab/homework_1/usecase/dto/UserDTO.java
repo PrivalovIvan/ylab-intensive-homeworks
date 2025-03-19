@@ -2,12 +2,14 @@ package com.ylab.homework_1.usecase.dto;
 
 import com.ylab.homework_1.common.Role;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
+@Builder
 public class UserDTO {
     private UUID uuid;
     private String name;

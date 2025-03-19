@@ -2,7 +2,7 @@ package com.ylab.homework_1.infrastructure.service;
 
 import com.ylab.homework_1.domain.model.User;
 import com.ylab.homework_1.usecase.dto.UserDTO;
-import com.ylab.homework_1.usecase.repository.UserRepository;
+import com.ylab.homework_1.domain.repository.UserRepository;
 import com.ylab.homework_1.usecase.service.UserService;
 import lombok.RequiredArgsConstructor;
 

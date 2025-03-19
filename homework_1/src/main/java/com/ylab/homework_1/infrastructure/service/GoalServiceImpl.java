@@ -4,7 +4,7 @@ import com.ylab.homework_1.domain.model.Goal;
 import com.ylab.homework_1.infrastructure.mapper.GoalMapper;
 import com.ylab.homework_1.usecase.dto.GoalDTO;
 import com.ylab.homework_1.usecase.dto.TransactionDTO;
-import com.ylab.homework_1.usecase.repository.GoalRepository;
+import com.ylab.homework_1.domain.repository.GoalRepository;
 import com.ylab.homework_1.usecase.service.GoalService;
 import com.ylab.homework_1.usecase.service.NotificationService;
 

@@ -40,12 +40,12 @@ class UserServiceImplTest {
 
     @Test
     void testRegisterAndFindAll() throws SQLException {
-        UserDTO user = new UserDTO(null, "testUser", "test@example.com", "password", Role.USER);
+        UserDTO user = new UserDTO(null, "testUser", "register@example.com", "password", Role.USER);
         userService.register(user);
 
         List<UserDTO> users = userService.findAll();
         assertFalse(users.isEmpty(), "Users list should not be empty");
-        assertTrue(users.stream().anyMatch(u -> "test@example.com".equals(u.getEmail())), "Registered user should be in the list");
+        assertTrue(users.stream().anyMatch(u -> "register@example.com".equals(u.getEmail())), "Registered user should be in the list");
     }
 
     @Test

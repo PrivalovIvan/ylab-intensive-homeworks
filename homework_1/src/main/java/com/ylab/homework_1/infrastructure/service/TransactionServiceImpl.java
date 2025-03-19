@@ -4,7 +4,7 @@ import com.ylab.homework_1.common.TransactionType;
 import com.ylab.homework_1.domain.model.Transaction;
 import com.ylab.homework_1.infrastructure.mapper.TransactionMapper;
 import com.ylab.homework_1.usecase.dto.TransactionDTO;
-import com.ylab.homework_1.usecase.repository.TransactionRepository;
+import com.ylab.homework_1.domain.repository.TransactionRepository;
 import com.ylab.homework_1.usecase.service.TransactionService;
 
 import java.math.BigDecimal;
