@@ -7,6 +7,7 @@ import com.ylab.homework_1.usecase.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final TransactionService transactionService;
 
     @Override
-    public BigDecimal getCurrentBalance(String email) {
+    public BigDecimal getCurrentBalance(String email) throws SQLException {
         List<TransactionDTO> transactions = transactionService.findAllTransactionUser(email);
         return transactions.stream()
                 .map(t -> t.getType() == TransactionType.INCOME ? t.getAmount() : t.getAmount().negate())
@@ -25,7 +26,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public BigDecimal getTotal(String email, LocalDate from, LocalDate to, TransactionType type) {
+    public BigDecimal getTotal(String email, LocalDate from, LocalDate to, TransactionType type) throws SQLException {
         return transactionService.findAllTransactionUser(email).stream()
                 .filter(t -> t.getType() == type)
                 .filter(t -> isWithinRange(t.getDate(), from, to))
@@ -34,7 +35,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public Map<String, BigDecimal> getExpensesByCategory(String email, LocalDate from, LocalDate to) {
+    public Map<String, BigDecimal> getExpensesByCategory(String email, LocalDate from, LocalDate to) throws SQLException {
         return transactionService.findAllTransactionUser(email).stream()
                 .filter(t -> t.getType() == TransactionType.EXPENSE)
                 .filter(t -> isWithinRange(t.getDate(), from, to))
@@ -44,7 +45,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public String generateFinancialReport(String email, LocalDate from, LocalDate to) {
+    public String generateFinancialReport(String email, LocalDate from, LocalDate to) throws SQLException {
         BigDecimal income = getTotal(email, from, to, TransactionType.INCOME);
         BigDecimal expense = getTotal(email, from, to, TransactionType.EXPENSE);
         BigDecimal balance = getCurrentBalance(email);

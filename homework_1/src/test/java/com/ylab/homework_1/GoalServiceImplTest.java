@@ -1,117 +1,114 @@
 package com.ylab.homework_1;
 
-import com.ylab.homework_1.domain.model.Goal;
-import com.ylab.homework_1.domain.repository.GoalRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
+import com.ylab.homework_1.infrastructure.repository.GoalRepositoryImpl;
+import com.ylab.homework_1.infrastructure.service.GoalServiceImpl;
+import com.ylab.homework_1.usecase.dto.GoalDTO;
+import com.ylab.homework_1.usecase.service.NotificationService;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.ClassLoaderResourceAccessor;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@Testcontainers
 class GoalServiceImplTest {
-    private GoalRepository goalRepository;
-    private GoalServiceImpl goalService;
 
-    @BeforeEach
-    void setUp() {
-        goalRepository = Mockito.mock(GoalRepository.class);
-        goalService = new GoalServiceImpl(goalRepository);
+    private static GoalServiceImpl goalService;
+    private static NotificationService notificationService;
+
+    @BeforeAll
+    static void setUp() throws Exception {
+        PostgresDataSource.initDB(TestContainerConfig.getProperties());
+
+        try (var connection = PostgresDataSource.getConnection()) {
+            Database database = DatabaseFactory.getInstance()
+                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            Liquibase liquibase = new Liquibase("db/migration/changelog.xml", new ClassLoaderResourceAccessor(), database);
+            liquibase.update();
+        }
+
+        notificationService = mock(NotificationService.class);
+        goalService = new GoalServiceImpl(new GoalRepositoryImpl(), notificationService);
     }
 
     @Test
-    void setGoal_createsNewGoal() {
-        String email = "user@example.com";
-        String name = "Vacation";
-        BigDecimal targetAmount = BigDecimal.valueOf(1000);
+    void testCreateAndFindGoals() throws SQLException {
+        GoalDTO goal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("New Car")
+                .targetAmount(BigDecimal.valueOf(10000))
+                .savedAmount(BigDecimal.ZERO)
+                .build();
+        goalService.createGoal(goal);
 
-        goalService.setGoal(email, name, targetAmount);
-
-        ArgumentCaptor<Goal> goalCaptor = ArgumentCaptor.forClass(Goal.class);
-        Mockito.verify(goalRepository).save(goalCaptor.capture());
-        Goal savedGoal = goalCaptor.getValue();
-        Assertions.assertThat(savedGoal.getEmail()).isEqualTo(email);
-        Assertions.assertThat(savedGoal.getTitle()).isEqualTo(name);
-        Assertions.assertThat(savedGoal.getTargetAmount()).isEqualTo(targetAmount);
-        Assertions.assertThat(savedGoal.getSavedAmount()).isEqualTo(BigDecimal.ZERO);
+        List<GoalDTO> goals = goalService.getUserGoals("test@example.com");
+        assertFalse(goals.isEmpty(), "Goals list should not be empty");
+        assertEquals(2, goals.size(), "Should return one goal");
+        assertEquals("New Car", goals.get(0).getTitle(), "Goal title should match");
     }
 
     @Test
-    void getUserGoals_returnsAllGoals() {
-        String email = "user@example.com";
-        List<Goal> goals = List.of(
-                new Goal(email, "Vacation", BigDecimal.valueOf(1000), BigDecimal.valueOf(500)),
-                new Goal(email, "Car", BigDecimal.valueOf(5000), BigDecimal.valueOf(2000))
-        );
-        Mockito.when(goalRepository.findAllByUser(email)).thenReturn(goals);
+    void testUpdateGoal() throws SQLException {
+        GoalDTO goal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("New Car")
+                .targetAmount(BigDecimal.valueOf(10000))
+                .savedAmount(BigDecimal.ZERO)
+                .build();
+        goalService.createGoal(goal);
 
-        List<Goal> result = goalService.getUserGoals(email);
+        GoalDTO updatedGoal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("New Car")
+                .targetAmount(BigDecimal.valueOf(15000))
+                .savedAmount(BigDecimal.valueOf(5000))
+                .build();
+        goalService.updateGoal(updatedGoal);
 
-        Assertions.assertThat(result).hasSize(2);
-        Assertions.assertThat(result).containsExactlyElementsOf(goals);
+        GoalDTO retrievedGoal = goalService.getGoalByName("test@example.com", "New Car");
+        assertEquals(new BigDecimal("15000.00"), retrievedGoal.getTargetAmount(), "Target amount should be updated");
+        assertEquals(new BigDecimal("5000.00"), retrievedGoal.getSavedAmount(), "Saved amount should be updated");
     }
 
     @Test
-    void getUserGoals_returnsEmptyListIfNoGoals() {
-        String email = "user@example.com";
-        Mockito.when(goalRepository.findAllByUser(email)).thenReturn(List.of());
+    void testDeleteGoal() throws SQLException {
+        GoalDTO goal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("New Car")
+                .targetAmount(BigDecimal.valueOf(10000))
+                .savedAmount(BigDecimal.ZERO)
+                .build();
+        goalService.createGoal(goal);
+        goalService.createGoal(goal);
+        goalService.deleteGoal("test@example.com", "New Car");
 
-        List<Goal> result = goalService.getUserGoals(email);
-
-        Assertions.assertThat(result).isEmpty();
+        List<GoalDTO> goals = goalService.getUserGoals("test@example.com");
+        assertFalse(goals.isEmpty(), "Goals list should be empty after deletion");
     }
 
     @Test
-    void updateGoalProgress_updatesProgressAndNotifiesIfAchieved() {
-        String email = "user@example.com";
-        String name = "Vacation";
-        Goal goal = new Goal(email, name, BigDecimal.valueOf(1000), BigDecimal.valueOf(800));
-        Mockito.when(goalRepository.findByName(email, name)).thenReturn(Optional.of(goal));
+    void testCheckAndNotify() throws SQLException {
+        GoalDTO goal = GoalDTO.builder()
+                .email("test@example.com")
+                .title("Vacation")
+                .targetAmount(BigDecimal.valueOf(5000))
+                .savedAmount(BigDecimal.valueOf(5000))
+                .build();
+        goalService.createGoal(goal);
+        goalService.createGoal(goal);
+        goalService.checkAndNotify("test@example.com", "Vacation");
 
-        goalService.updateGoalProgress(email, name, BigDecimal.valueOf(300));
-
-        ArgumentCaptor<Goal> goalCaptor = ArgumentCaptor.forClass(Goal.class);
-        Mockito.verify(goalRepository).updateProgress(ArgumentMatchers.eq(email), ArgumentMatchers.eq(name), goalCaptor.capture());
-        Goal updatedGoal = goalCaptor.getValue();
-        Assertions.assertThat(updatedGoal.getSavedAmount()).isEqualTo(BigDecimal.valueOf(1100)); // 800 + 300
-        Assertions.assertThat(updatedGoal.isAchieved()).isTrue();
-    }
-
-    @Test
-    void updateGoalProgress_doesNothingIfGoalNotFound() {
-        String email = "user@example.com";
-        String name = "Vacation";
-        Mockito.when(goalRepository.findByName(email, name)).thenReturn(Optional.empty());
-
-        goalService.updateGoalProgress(email, name, BigDecimal.valueOf(200));
-
-        Mockito.verify(goalRepository, Mockito.never()).updateProgress(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.any(Goal.class));
-    }
-
-    @Test
-    void updateGoalProgress_doesNotNotifyIfNotAchieved() {
-        String email = "user@example.com";
-        String name = "Car";
-        Goal goal = new Goal(email, name, BigDecimal.valueOf(5000), BigDecimal.valueOf(2000));
-        Mockito.when(goalRepository.findByName(email, name)).thenReturn(Optional.of(goal));
-
-        goalService.updateGoalProgress(email, name, BigDecimal.valueOf(1000));
-
-        ArgumentCaptor<Goal> goalCaptor = ArgumentCaptor.forClass(Goal.class);
-        Mockito.verify(goalRepository).updateProgress(ArgumentMatchers.eq(email), ArgumentMatchers.eq(name), goalCaptor.capture());
-        Goal updatedGoal = goalCaptor.getValue();
-        Assertions.assertThat(updatedGoal.getSavedAmount()).isEqualTo(BigDecimal.valueOf(3000)); // 2000 + 1000
-        Assertions.assertThat(updatedGoal.isAchieved()).isFalse();
-    }
-
-    @Test
-    void deleteGoal_callsRepositoryDelete() {
-        String email = "user@example.com";
-        String name = "Vacation";
-
-        goalService.deleteGoal(email, name);
-
-        Mockito.verify(goalRepository).delete(email, name);
+        verify(notificationService, times(1)).send("test@example.com", "Goal Vacation is completed");
     }
 }

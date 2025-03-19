@@ -6,9 +6,9 @@ import com.ylab.homework_1.usecase.mapper.Mapper;
 
 public class GoalMapper {
     public static final Mapper<Goal, GoalDTO> toGoal = (goalDTO) ->
-            new Goal(goalDTO.getEmail(), goalDTO.getTitle(), goalDTO.getTargetAmount(), goalDTO.getSavedAmount());
+            new Goal(goalDTO.getUuid(), goalDTO.getEmail(), goalDTO.getTitle(), goalDTO.getTargetAmount(), goalDTO.getSavedAmount());
 
     public static final Mapper<GoalDTO, Goal> toGoalDTO = (goal) ->
-            new GoalDTO(goal.getEmail(), goal.getTitle(), goal.getTargetAmount(), goal.getSavedAmount());
+            new GoalDTO(goal.getUuid(), goal.getEmail(), goal.getTitle(), goal.getTargetAmount(), goal.getSavedAmount());
 
 }

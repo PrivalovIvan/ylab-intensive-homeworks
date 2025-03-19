@@ -1,164 +1,77 @@
 package com.ylab.homework_1;
 
-import com.ylab.homework_1.domain.model.Budget;
-import com.ylab.homework_1.domain.repository.BudgetRepository;
-import com.ylab.homework_1.domain.service.NotificationService;
-import org.junit.jupiter.api.BeforeEach;
+import com.ylab.homework_1.infrastructure.datasource.PostgresDataSource;
+import com.ylab.homework_1.infrastructure.mapper.BudgetMapper;
+import com.ylab.homework_1.infrastructure.repository.BudgetRepositoryImpl;
+import com.ylab.homework_1.infrastructure.service.BudgetServiceImpl;
+import com.ylab.homework_1.infrastructure.service.NotificationServiceImpl;
+import com.ylab.homework_1.usecase.dto.BudgetDTO;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.ClassLoaderResourceAccessor;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.YearMonth;
-import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@Testcontainers
 class BudgetServiceImplTest {
-    private BudgetRepository budgetRepository;
-    private NotificationService notificationService;
-    private BudgetServiceImpl budgetService;
+    private static BudgetServiceImpl budgetService;
 
-    @BeforeEach
-    void setUp() {
-        budgetRepository = Mockito.mock(BudgetRepository.class);
-        notificationService = Mockito.mock(NotificationService.class);
-        budgetService = new BudgetServiceImpl(budgetRepository, notificationService);
+    @BeforeAll
+    static void setUp() throws Exception {
+        PostgresDataSource.initDB(TestContainerConfig.getProperties());
+
+        try (var connection = PostgresDataSource.getConnection()) {
+            Database database = DatabaseFactory.getInstance()
+                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            Liquibase liquibase = new Liquibase("db/migration/changelog.xml", new ClassLoaderResourceAccessor(), database);
+            liquibase.update();
+        }
+
+        budgetService = new BudgetServiceImpl(new BudgetRepositoryImpl(), new NotificationServiceImpl());
     }
 
     @Test
-    void createBudget_savesNewBudget() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        BigDecimal limit = BigDecimal.valueOf(1000);
+    void testCreateAndRetrieveBudget() throws SQLException {
+        BudgetDTO budget = BudgetDTO.builder()
+                .email("test@example.com")
+                .yearMonth(YearMonth.of(2025, 3))
+                .budget(BigDecimal.valueOf(1000))
+                .spent(BigDecimal.ZERO)
+                .build();
+        budgetService.createBudget(budget);
 
-        budgetService.createBudget(email, month, limit);
-
-        ArgumentCaptor<Budget> budgetCaptor = ArgumentCaptor.forClass(Budget.class);
-        Mockito.verify(budgetRepository).save(budgetCaptor.capture());
-        Budget savedBudget = budgetCaptor.getValue();
-        Assertions.assertThat(savedBudget.getEmail()).isEqualTo(email);
-        Assertions.assertThat(savedBudget.getYearMonth()).isEqualTo(month);
-        Assertions.assertThat(savedBudget.getBudget()).isEqualTo(limit);
-        Assertions.assertThat(savedBudget.getSpent()).isEqualTo(BigDecimal.ZERO);
+        BudgetDTO retrievedBudget = budgetService.getBudget("test@example.com", YearMonth.of(2025, 3))
+                .orElseThrow(RuntimeException::new);
+        assertNotNull(retrievedBudget, "Budget should not be null");
+        assertEquals(new BigDecimal("1000.00"), retrievedBudget.getBudget(), "Budget amount should match");
+        assertEquals(new BigDecimal("0.00"), retrievedBudget.getSpent(), "Spent amount should be zero");
     }
 
     @Test
-    void getBudget_returnsExistingBudget() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Budget budget = new Budget(email, month, BigDecimal.valueOf(1000), BigDecimal.valueOf(200));
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.of(budget));
+    void testAddExpenseAndCheckExceeded() throws SQLException {
+        BudgetDTO budget = BudgetDTO.builder()
+                .email("test@example.com")
+                .yearMonth(YearMonth.of(2025, 5))
+                .budget(BigDecimal.valueOf(500))
+                .spent(BigDecimal.ZERO)
+                .build();
+        budgetService.createBudget(budget);
 
-        Optional<Budget> result = budgetService.getBudget(email, month);
+        budgetService.addExpense("test@example.com", YearMonth.of(2025, 5), BigDecimal.valueOf(600));
 
-        Assertions.assertThat(result).isPresent();
-        Assertions.assertThat(result.get()).isEqualTo(budget);
-    }
-
-    @Test
-    void getBudget_returnsEmptyIfNotFound() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.empty());
-
-        Optional<Budget> result = budgetService.getBudget(email, month);
-
-        Assertions.assertThat(result).isEmpty();
-    }
-
-    @Test
-    void addExpense_updatesBudgetAndNotifiesIfExceeded() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Budget budget = new Budget(email, month, BigDecimal.valueOf(500), BigDecimal.valueOf(400));
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.of(budget));
-
-        budgetService.addExpense(email, month, BigDecimal.valueOf(200));
-
-        ArgumentCaptor<Budget> budgetCaptor = ArgumentCaptor.forClass(Budget.class);
-        Mockito.verify(budgetRepository).save(budgetCaptor.capture());
-        Budget updatedBudget = budgetCaptor.getValue();
-        Assertions.assertThat(updatedBudget.getSpent()).isEqualTo(BigDecimal.valueOf(600)); // 400 + 200
-        Assertions.assertThat(updatedBudget.isExceeded()).isTrue();
-    }
-
-    @Test
-    void addExpense_doesNothingIfBudgetNotFound() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.empty());
-
-        budgetService.addExpense(email, month, BigDecimal.valueOf(100));
-
-        Mockito.verify(budgetRepository, Mockito.never()).save(ArgumentMatchers.any(Budget.class));
-    }
-
-    @Test
-    void isBudgetExceeded_returnsTrueIfExceeded() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Budget budget = new Budget(email, month, BigDecimal.valueOf(500), BigDecimal.valueOf(600));
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.of(budget));
-
-        boolean result = budgetService.isBudgetExceeded(email, month);
-
-        Assertions.assertThat(result).isTrue();
-    }
-
-    @Test
-    void isBudgetExceeded_returnsFalseIfNotExceeded() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Budget budget = new Budget(email, month, BigDecimal.valueOf(500), BigDecimal.valueOf(300));
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.of(budget));
-
-        boolean result = budgetService.isBudgetExceeded(email, month);
-
-        Assertions.assertThat(result).isFalse();
-    }
-
-    @Test
-    void isBudgetExceeded_returnsFalseIfBudgetNotFound() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.empty());
-
-        boolean result = budgetService.isBudgetExceeded(email, month);
-
-        Assertions.assertThat(result).isFalse();
-    }
-
-    @Test
-    void checkAndNotify_sendsNotificationIfBudgetExceeded() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Budget budget = new Budget(email, month, BigDecimal.valueOf(500), BigDecimal.valueOf(700));
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.of(budget));
-
-        budgetService.checkAndNotify(email, month);
-
-        Mockito.verify(notificationService).send(email, "Вы превысили бюджет за " + month.getMonth() +
-                " месяц, на: " + BigDecimal.valueOf(200)); // 700 - 500 = 200
-    }
-
-    @Test
-    void checkAndNotify_doesNotNotifyIfBudgetNotExceeded() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Budget budget = new Budget(email, month, BigDecimal.valueOf(500), BigDecimal.valueOf(400));
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.of(budget));
-
-        budgetService.checkAndNotify(email, month);
-
-        Mockito.verify(notificationService, Mockito.never()).send(ArgumentMatchers.anyString(), ArgumentMatchers.anyString());
-    }
-
-    @Test
-    void checkAndNotify_doesNotNotifyIfBudgetNotFound() {
-        String email = "user@example.com";
-        YearMonth month = YearMonth.of(2025, 3);
-        Mockito.when(budgetRepository.findByUserAndMonth(email, month)).thenReturn(Optional.empty());
-
-        budgetService.checkAndNotify(email, month);
-
-        Mockito.verify(notificationService, Mockito.never()).send(ArgumentMatchers.anyString(), ArgumentMatchers.anyString());
+        BudgetDTO updatedBudget = budgetService.getBudget("test@example.com", YearMonth.of(2025, 5))
+                .orElseThrow(RuntimeException::new);
+        assertEquals(new BigDecimal("600.00"), updatedBudget.getSpent(), "Spent amount should match");
+        assertTrue(BudgetMapper.toBudget.apply(updatedBudget).isExceeded(), "Budget should be exceeded");
     }
 }

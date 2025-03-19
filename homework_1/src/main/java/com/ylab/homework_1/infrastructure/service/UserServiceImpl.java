@@ -1,43 +1,48 @@
 package com.ylab.homework_1.infrastructure.service;
 
 import com.ylab.homework_1.domain.model.User;
-import com.ylab.homework_1.infrastructure.mapper.UserMapper;
 import com.ylab.homework_1.usecase.dto.UserDTO;
-import com.ylab.homework_1.usecase.repository.UserRepository;
+import com.ylab.homework_1.domain.repository.UserRepository;
+import com.ylab.homework_1.usecase.service.PasswordEncoder;
 import com.ylab.homework_1.usecase.service.UserService;
 import lombok.RequiredArgsConstructor;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+
+import static com.ylab.homework_1.infrastructure.mapper.UserMapper.*;
 
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder = new PasswordEncoderImpl();
 
     @Override
-    public void register(UserDTO userDTO) {
+    public void register(UserDTO userDTO) throws SQLException {
         User user = userRepository.getByEmail(userDTO.getEmail()).orElse(null);
         if (user == null) {
-            userRepository.save(UserMapper.toUser.apply(userDTO));
+            userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+            userRepository.save(toUser.apply(userDTO));
         } else {
             throw new IllegalArgumentException("User already exists");
         }
     }
 
     @Override
-    public UserDTO login(String email, String password) throws IllegalArgumentException {
+    public UserDTO login(String email, String password) throws IllegalArgumentException, SQLException {
         User user = userRepository.getByEmail(email).orElseThrow(() ->
                 new IllegalArgumentException("Email: " + email + " not found"));
 
-        if (!user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new IllegalArgumentException("Invalid password");
         }
-        return UserMapper.toUserDTO.apply(user);
+        return toUserDTO.apply(user);
     }
 
     @Override
-    public UserDTO updateUser(UUID userId, String newName, String newEmail, String newPassword) {
-        User user = userRepository.getById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+    public UserDTO updateUser(UUID id, String newName, String newEmail, String newPassword) throws SQLException {
+        User user = userRepository.getById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
         if (newEmail != null && userRepository.getByEmail(newEmail).isPresent()) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -46,30 +51,30 @@ public class UserServiceImpl implements UserService {
         String email = newEmail != null ? newEmail : user.getEmail();
         String password = newPassword != null ? newPassword : user.getPassword();
 
-        UserDTO updatedUser = new UserDTO(userId, name, email, password, user.getRole());
-        userRepository.save(UserMapper.toUser.apply(updatedUser));
+        UserDTO updatedUser = new UserDTO(id, name, email, password, user.getRole());
+        userRepository.update(toUser.apply(updatedUser));
         return updatedUser;
     }
 
     @Override
-    public void delete(String email) {
+    public void delete(String email) throws SQLException {
         userRepository.delete(email);
     }
 
     @Override
-    public UserDTO findByEmail(String email) {
-        return UserMapper.toUserDTO.apply(userRepository.getByEmail(email).orElseThrow(() ->
+    public UserDTO findByEmail(String email) throws SQLException {
+        return toUserDTO.apply(userRepository.getByEmail(email).orElseThrow(() ->
                 new IllegalArgumentException("Email: " + email + " not found")));
     }
 
     @Override
-    public UserDTO findByUuid(UUID uuid) {
-        return UserMapper.toUserDTO.apply(userRepository.getById(uuid).orElseThrow(() ->
-                new IllegalArgumentException("UUID: " + uuid + " not found")));
+    public UserDTO findByUuid(UUID id) throws SQLException {
+        return toUserDTO.apply(userRepository.getById(id).orElseThrow(() ->
+                new IllegalArgumentException("ID: " + id + " not found")));
     }
 
     @Override
-    public List<UserDTO> findAll() {
-        return userRepository.getAll().stream().map(UserMapper.toUserDTO::apply).toList();
+    public List<UserDTO> findAll() throws SQLException {
+        return userRepository.getAll().stream().map(toUserDTO::apply).toList();
     }
 }

@@ -2,14 +2,16 @@ package com.ylab.homework_1.usecase.dto;
 
 import com.ylab.homework_1.common.Role;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
+@Builder
 public class UserDTO {
-    private UUID id;
+    private UUID uuid;
     private String name;
     private String email;
     private String password;
@@ -19,11 +21,11 @@ public class UserDTO {
     public String toString() {
         return """
                 User:
-                    id: %s,
+                    id: %s
                     name: %s,
                     email: %s,
                     password: %s,
                     role: %s
-                """.formatted(id, name, email, password, role);
+                """.formatted(uuid, name, email, password, role);
     }
 }

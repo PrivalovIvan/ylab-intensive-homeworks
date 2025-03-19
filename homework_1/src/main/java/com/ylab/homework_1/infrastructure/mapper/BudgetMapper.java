@@ -6,8 +6,8 @@ import com.ylab.homework_1.usecase.mapper.Mapper;
 
 public class BudgetMapper {
     public static final Mapper<Budget, BudgetDTO> toBudget = (budgetDTO) ->
-            new Budget(budgetDTO.getEmail(), budgetDTO.getYearMonth(), budgetDTO.getBudget(), budgetDTO.getSpent());
+            new Budget(budgetDTO.getUuid(), budgetDTO.getEmail(), budgetDTO.getYearMonth(), budgetDTO.getBudget(), budgetDTO.getSpent());
 
     public static final Mapper<BudgetDTO, Budget> toBudgetDTO = (budget) ->
-            new BudgetDTO(budget.getEmail(), budget.getYearMonth(), budget.getBudget(), budget.getSpent());
+            new BudgetDTO(budget.getUuid(), budget.getEmail(), budget.getYearMonth(), budget.getBudget(), budget.getSpent());
 }

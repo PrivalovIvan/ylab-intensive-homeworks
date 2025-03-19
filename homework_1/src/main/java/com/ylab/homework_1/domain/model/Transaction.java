@@ -2,6 +2,7 @@ package com.ylab.homework_1.domain.model;
 
 import com.ylab.homework_1.common.TransactionType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Transaction {
     private UUID uuid;
     private String email;
@@ -25,7 +27,7 @@ public class Transaction {
     @Override
     public String toString() {
         return """
-                Transaction: 
+                Transaction:
                  uuid: %s
                  date: %s
                  email: %s
