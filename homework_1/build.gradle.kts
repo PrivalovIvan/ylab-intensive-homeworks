@@ -51,6 +51,8 @@ dependencies {
     liquibaseRuntime("org.liquibase:liquibase-core:4.31.0")
     liquibaseRuntime("org.postgresql:postgresql:42.7.5")
     liquibaseRuntime("info.picocli:picocli:4.7.6")
+
+    implementation("org.mindrot:jbcrypt:0.4")
 }
 
 tasks.withType<Test> {

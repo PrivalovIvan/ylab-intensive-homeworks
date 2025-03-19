@@ -3,6 +3,7 @@ package com.ylab.homework_1.infrastructure.service;
 import com.ylab.homework_1.domain.model.User;
 import com.ylab.homework_1.usecase.dto.UserDTO;
 import com.ylab.homework_1.domain.repository.UserRepository;
+import com.ylab.homework_1.usecase.service.PasswordEncoder;
 import com.ylab.homework_1.usecase.service.UserService;
 import lombok.RequiredArgsConstructor;
 
@@ -15,11 +16,13 @@ import static com.ylab.homework_1.infrastructure.mapper.UserMapper.*;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder = new PasswordEncoderImpl();
 
     @Override
     public void register(UserDTO userDTO) throws SQLException {
         User user = userRepository.getByEmail(userDTO.getEmail()).orElse(null);
         if (user == null) {
+            userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
             userRepository.save(toUser.apply(userDTO));
         } else {
             throw new IllegalArgumentException("User already exists");
@@ -31,7 +34,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.getByEmail(email).orElseThrow(() ->
                 new IllegalArgumentException("Email: " + email + " not found"));
 
-        if (!user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new IllegalArgumentException("Invalid password");
         }
         return toUserDTO.apply(user);
