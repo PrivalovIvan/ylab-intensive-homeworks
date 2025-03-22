@@ -1,0 +1,109 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'application'
+    id 'org.liquibase.gradle' version '2.2.2'
+    id("io.spring.dependency-management") version "1.1.7"
+    id("io.freefair.aspectj.post-compile-weaving") version "8.13"
+}
+
+group 'com.ylab'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    junitVersion = '5.11.0-M2'
+}
+
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    // Jakarta API для сервлетов
+    implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+
+//    // Встроенный Tomcat
+    compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:11.0.5'
+    compileOnly 'org.apache.tomcat.embed:tomcat-embed-jasper:11.0.5'
+
+    // Liquibase для миграций
+    implementation 'org.liquibase:liquibase-core:4.31.0'
+
+    // База данных
+    implementation 'org.postgresql:postgresql:42.7.5'
+
+    // Для работы с JSON
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+    // Для работы с датами (java.time.YearMonth)
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.3'
+
+    // Валидация
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    implementation 'jakarta.validation:jakarta.validation-api:3.1.1'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
+
+
+    // MapStruct для маппинга
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+    implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    implementation("jakarta.inject:jakarta.inject-api:2.0.1")
+
+    // Bcrypt
+    implementation 'org.mindrot:jbcrypt:0.4'
+
+    // Тестирование
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.mockito:mockito-core:5.16.1'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.16.1'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+    testImplementation 'org.testcontainers:postgresql:1.19.7'
+
+    liquibaseRuntime("org.liquibase:liquibase-core:4.31.0")
+    liquibaseRuntime("org.postgresql:postgresql:42.7.5")
+    liquibaseRuntime("info.picocli:picocli:4.7.6")
+
+    implementation 'org.aspectj:aspectjrt:1.9.23'
+    implementation 'org.aspectj:aspectjweaver:1.9.23'
+    runtimeOnly 'org.aspectj:aspectjweaver:1.9.23'
+//
+    implementation 'ch.qos.logback:logback-classic:1.5.11'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+application {
+    mainClass = 'com.ylab.finance_tracker.Homework1Application'
+}
+
+liquibase {
+    activities {
+        main {
+            arguments = [
+                    'changelogFile': 'src/main/resources/db/migration/changelog.xml',
+                    'url'          : 'jdbc:postgresql://localhost:5433/finance_db',
+                    'username'     : 'finance_user',
+                    'password'     : 'finance_password'
+            ]
+        }
+    }
+    runList = 'main'
+}
+
+tasks.register('dev') {
+    dependsOn 'update'
+}
