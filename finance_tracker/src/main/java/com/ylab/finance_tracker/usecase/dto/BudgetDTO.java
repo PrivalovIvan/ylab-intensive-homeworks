@@ -18,10 +18,10 @@ import java.util.UUID;
 public class BudgetDTO {
     private UUID uuid;
     private String email;
-    @NotNull(message = "Введите год и месяц в формате YYYY-MM")
+    @NotNull(message = "Enter the year and month in the YYYY-MM format.")
     private YearMonth yearMonth;
-    @NotNull(message = "Сумма бюджета на месяц обязательна")
-    @Positive(message = "Сумма должна быть положительной")
+    @NotNull(message = "The monthly budget amount is required")
+    @Positive(message = "The amount must be positive")
     private BigDecimal budget;
     private BigDecimal spent;
 

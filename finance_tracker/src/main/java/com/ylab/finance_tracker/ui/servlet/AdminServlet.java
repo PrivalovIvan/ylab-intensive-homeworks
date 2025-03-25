@@ -39,21 +39,25 @@ public class AdminServlet extends HttpServlet {
     }
     //endregion
 
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
         PrintWriter writer = resp.getWriter();
         String pathInfo = req.getPathInfo();
+        if (pathInfo == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid request path");
+            return;
+        }
+
         try {
-            if (pathInfo != null && pathInfo.equals("/users")) {
-                List<UserDTO> users = administrationService.findAllUsers();
-                writer.write(objectMapper.writeValueAsString(users));
-                resp.setStatus(HttpServletResponse.SC_OK);
-            } else {
-                assert pathInfo != null;
-                if (pathInfo.equals("/users/transactions")) {
+            switch (pathInfo) {
+                case "/users" -> {
+                    List<UserDTO> users = administrationService.findAllUsers();
+                    writer.write(objectMapper.writeValueAsString(users));
+                    resp.setStatus(HttpServletResponse.SC_OK);
+                }
+                case "/users/transactions" -> {
                     String email = req.getParameter("email");
                     List<TransactionDTO> transactions = administrationService.findAllTransactionsOfUsers(email);
                     if (transactions.isEmpty()) {
@@ -63,9 +67,10 @@ public class AdminServlet extends HttpServlet {
                         resp.setStatus(HttpServletResponse.SC_OK);
                     }
                 }
+                default -> resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Invalid endpoint");
             }
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (IllegalArgumentException ex) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
         }
@@ -82,10 +87,9 @@ public class AdminServlet extends HttpServlet {
             String email = req.getParameter("email");
             try {
                 administrationService.deleteUser(email);
-                writer.write("User deleted: " + email);
                 resp.setStatus(HttpServletResponse.SC_OK);
             } catch (SQLException e) {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
         }
     }

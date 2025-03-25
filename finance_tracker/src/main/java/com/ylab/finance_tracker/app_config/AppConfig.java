@@ -2,7 +2,6 @@ package com.ylab.finance_tracker.app_config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.ylab.finance_tracker.Homework1Application;
 import com.ylab.finance_tracker.infrastructure.datasource.PostgresDataSource;
 import com.ylab.finance_tracker.infrastructure.repository.BudgetRepositoryImpl;
 import com.ylab.finance_tracker.infrastructure.repository.GoalRepositoryImpl;
@@ -60,7 +59,7 @@ public class AppConfig {
 
     private static Properties loadProperties() throws Exception {
         Properties properties = new Properties();
-        var inputStream = Homework1Application.class.getClassLoader().getResourceAsStream("application.properties");
+        var inputStream = AppConfig.class.getClassLoader().getResourceAsStream("application.properties");
         if (inputStream == null) {
             throw new IllegalStateException("Cannot find application.properties in classpath");
         }

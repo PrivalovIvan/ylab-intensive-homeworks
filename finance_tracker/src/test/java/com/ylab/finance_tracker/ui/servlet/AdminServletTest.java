@@ -97,7 +97,6 @@ public class AdminServletTest {
         adminServlet.doDelete(request, response);
         writer.flush();
 
-        assertTrue(stringWriter.toString().contains("User deleted"));
         verify(response).setStatus(HttpServletResponse.SC_OK);
         verify(adminService).deleteUser("user@example.com");
     }
@@ -111,6 +110,6 @@ public class AdminServletTest {
         adminServlet.doDelete(request, response);
         writer.flush();
 
-        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 }

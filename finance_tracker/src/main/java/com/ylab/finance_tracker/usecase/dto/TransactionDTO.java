@@ -19,15 +19,15 @@ import java.util.UUID;
 public class TransactionDTO {
     private UUID uuid;
     private String email;
-    @NotNull(message = "Укажите тип транзакции (INCOME/EXPENSE)")
+    @NotNull(message = "Specify the type of transaction (INCOME/EXPENSE)")
     private TransactionType type;
-    @NotNull(message = "Сумма транзакции обязательна")
-    @Positive(message = "Сумма должна быть положительной")
+    @NotNull(message = "The transaction amount is required")
+    @Positive(message = "The amount must be positive")
     private BigDecimal amount;
-    @NotBlank(message = "Укажите категорию")
+    @NotBlank(message = "Specify the category")
     private String category;
     private LocalDate date;
-    @NotBlank(message = "Укажите описание")
+    @NotBlank(message = "Provide a description")
     private String description;
 
     @Override

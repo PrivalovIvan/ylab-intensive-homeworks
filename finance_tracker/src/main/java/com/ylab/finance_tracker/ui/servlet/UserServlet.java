@@ -66,8 +66,8 @@ public class UserServlet extends HttpServlet {
         String pathInfo = req.getPathInfo();
         PrintWriter writer = resp.getWriter();
         try {
-            if (pathInfo != null) {
-                if (pathInfo.equals("/registration")) {
+            switch (pathInfo) {
+                case "/registration" -> {
                     String name = req.getParameter("name");
                     String email = req.getParameter("email");
                     String password = req.getParameter("password");
@@ -78,7 +78,8 @@ public class UserServlet extends HttpServlet {
                     userService.register(userDTO);
                     writer.println("Registration successful!");
                     resp.setStatus(HttpServletResponse.SC_CREATED);
-                } else if (pathInfo.equals("/login")) {
+                }
+                case "/login" -> {
                     String email = req.getParameter("email");
                     String password = req.getParameter("password");
                     UserDTO currentUser = userService.login(email, password);

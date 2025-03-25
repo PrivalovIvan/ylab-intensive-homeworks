@@ -15,13 +15,13 @@ import java.util.UUID;
 @Builder
 public class UserDTO {
     private UUID uuid;
-    @NotBlank(message = "Введите ваше имя")
+    @NotBlank(message = "Enter your name")
     private String name;
-    @NotBlank(message = "Введите ваш email")
-    @Email(message = "Введите корректный email")
+    @NotBlank(message = "Enter your email address")
+    @Email(message = "Enter the correct email address")
     private String email;
-    @NotBlank(message = "Введите пароль")
-    @Size(min = 4, message = "Пароль должен быть длиннее 4х символов")
+    @NotBlank(message = "Enter the password")
+    @Size(min = 4, message = "The password must be longer than 4 characters.")
     private String password;
     private Role role;
 

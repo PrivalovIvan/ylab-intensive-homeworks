@@ -54,7 +54,7 @@ public class BudgetServlet extends HttpServlet {
             writer.println(objectMapper.writeValueAsString(budgetDTO));
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -81,7 +81,7 @@ public class BudgetServlet extends HttpServlet {
             budgetService.createBudget(budgetDTO);
             resp.setStatus(HttpServletResponse.SC_CREATED);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -98,7 +98,7 @@ public class BudgetServlet extends HttpServlet {
             budgetService.addExpense(user.getEmail(), yearMonth, expense);
             resp.setStatus(HttpServletResponse.SC_CREATED);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }

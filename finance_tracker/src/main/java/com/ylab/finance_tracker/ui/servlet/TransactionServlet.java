@@ -60,7 +60,7 @@ public class TransactionServlet extends HttpServlet {
             writer.write(objectMapper.writeValueAsString(transactionService.findAllTransactionUser(currentUser.getEmail())));
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -121,7 +121,7 @@ public class TransactionServlet extends HttpServlet {
             transactionService.updateDescription(currentUser.getEmail(), idTransaction, description);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (IllegalArgumentException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }
@@ -139,7 +139,7 @@ public class TransactionServlet extends HttpServlet {
             transactionService.deleteTransaction(currentUser.getEmail(), idTransaction);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (IllegalArgumentException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }

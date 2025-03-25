@@ -17,9 +17,9 @@ import java.util.UUID;
 public class GoalDTO {
     private UUID uuid;
     private String email;
-    @NotBlank(message = "Укажите название цели")
+    @NotBlank(message = "Specify the name of the goal")
     private String title;
-    @NotNull(message = "Обязательно укажите сумму")
+    @NotNull(message = "Be sure to specify the amount")
     private BigDecimal targetAmount;
     private BigDecimal savedAmount;
 

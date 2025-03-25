@@ -56,7 +56,7 @@ public class GoalServlet extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
             }
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -83,11 +83,10 @@ public class GoalServlet extends HttpServlet {
                 return;
             }
             goalService.createGoal(goalDTO);
-            writer.write("Goal created");
             writer.write(objectMapper.writeValueAsString(goalDTO));
             resp.setStatus(HttpServletResponse.SC_CREATED);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -113,12 +112,11 @@ public class GoalServlet extends HttpServlet {
                 return;
             }
             goalService.updateGoal(updatedGoal);
-            writer.write("Goal updated");
             writer.write(objectMapper.writeValueAsString(updatedGoal));
             goalService.checkAndNotify(user.getEmail(), nameGoal);
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -133,9 +131,9 @@ public class GoalServlet extends HttpServlet {
         String nameGoal = req.getParameter("nameGoal");
         try {
             goalService.deleteGoal(user.getEmail(), nameGoal);
-            writer.write("Goal deleted");
+            resp.setStatus(HttpServletResponse.SC_OK);
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }
