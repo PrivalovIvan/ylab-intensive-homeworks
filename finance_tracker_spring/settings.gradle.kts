@@ -1,1 +1,0 @@
-rootProject.name = "finance_tracker_spring"
