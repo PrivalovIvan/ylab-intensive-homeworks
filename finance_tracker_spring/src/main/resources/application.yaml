@@ -8,10 +8,22 @@ spring:
     driver-class-name: org.postgresql.Driver
   liquibase:
     change-log: classpath:db/changelog/changelog.xml
+  mail:
+    host: smtp.yandex.ru
+    port: 465
+    username: mamamia3009@yandex.ru
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
 
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
     path: /swagger-ui.html
+
 

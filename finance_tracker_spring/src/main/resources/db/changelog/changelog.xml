@@ -9,6 +9,7 @@
         <sql>
             CREATE SCHEMA IF NOT EXISTS liquibase_tables;
             CREATE SCHEMA IF NOT EXISTS finance;
+            CREATE SCHEMA IF NOT EXISTS audit;
             CREATE
             EXTENSION IF NOT EXISTS "pgcrypto";
         </sql>
@@ -17,4 +18,5 @@
     <include file="001-create-tables.xml" relativeToChangelogFile="true"/>
     <include file="002-insert-data.xml" relativeToChangelogFile="true"/>
     <include file="003-insert-data-for-tests.xml" relativeToChangelogFile="true"/>
+    <include file="004-create-table-audit-action-users.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
