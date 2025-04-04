@@ -1,3 +1,4 @@
+# Finance Tracker Spring
 
 **Сначала:**
 1. Запуск контейнера с бд: docker-compose up -d
@@ -15,3 +16,14 @@
 
 **Swagger**
 - http://localhost:8080/swagger-ui/index.html
+
+
+## Настройка отправки email
+
+Для работы отправки email необходимо настроить переменную окружения `SPRING_MAIL_PASSWORD`:
+
+1. Создайте пароль приложения в настройках Yandex (https://id.yandex.com/security/app-passwords).
+2. Задайте переменную окружения перед запуском:
+   ```bash
+   export SPRING_MAIL_PASSWORD=ваш_пароль_приложения
+   ./gradlew bootRun
