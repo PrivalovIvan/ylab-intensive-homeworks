@@ -1,6 +1,6 @@
-package com.ylab.finance_tracker_spring_boot.audit_action_users.repository;
+package com.ylab.auditing.repository;
 
-import com.ylab.finance_tracker_spring_boot.audit_action_users.model.Action;
+import com.ylab.auditing.model.Action;
 
 import java.util.List;
 

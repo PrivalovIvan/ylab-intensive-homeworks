@@ -16,7 +16,7 @@
             <column name="action" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="action_date" type="java.sql.types.timestamp_with_timezone">
+            <column name="action_date" type="timestamptz">
                 <constraints nullable="false"/>
             </column>
         </createTable>

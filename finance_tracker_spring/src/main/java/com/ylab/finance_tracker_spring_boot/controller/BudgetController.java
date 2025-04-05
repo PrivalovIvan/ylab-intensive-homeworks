@@ -3,7 +3,7 @@ package com.ylab.finance_tracker_spring_boot.controller;
 import com.ylab.finance_tracker_spring_boot.domain.service.BudgetService;
 import com.ylab.finance_tracker_spring_boot.dto.BudgetDTO;
 import com.ylab.finance_tracker_spring_boot.security.AuthService;
-import com.ylab.finance_tracker_spring_boot.annotation.Loggable;
+import com.ylab.logging.annotation.Loggable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
