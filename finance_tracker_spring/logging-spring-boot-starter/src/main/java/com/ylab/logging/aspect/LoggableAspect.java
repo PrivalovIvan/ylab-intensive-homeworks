@@ -1,5 +1,4 @@
-package com.ylab.finance_tracker_spring_boot.aspect;
-
+package com.ylab.logging.aspect;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -9,10 +8,10 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 
 @Aspect
-@Slf4j
 @Component
+@Slf4j
 public class LoggableAspect {
-    @Pointcut("@annotation(com.ylab.finance_tracker_spring_boot.annotation.Loggable)")
+    @Pointcut("within(@com.ylab.logging.annotation.Loggable *)")
     public void loggablePointcut() {
     }
 

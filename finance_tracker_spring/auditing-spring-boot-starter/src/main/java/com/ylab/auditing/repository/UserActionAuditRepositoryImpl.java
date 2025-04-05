@@ -1,6 +1,6 @@
-package com.ylab.finance_tracker_spring_boot.audit_action_users.repository;
+package com.ylab.auditing.repository;
 
-import com.ylab.finance_tracker_spring_boot.audit_action_users.model.Action;
+import com.ylab.auditing.model.Action;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +37,6 @@ public class UserActionAuditRepositoryImpl implements UserActionAuditRepository 
                 .uuid(resultSet.getObject("id", UUID.class))
                 .userEmail(resultSet.getString("user_email"))
                 .action(resultSet.getString("action"))
-                .actionDate(resultSet.getObject("action_date", Instant.class)).build();
+                .actionDate(resultSet.getTimestamp("action_date").toInstant()).build();
     }
 }

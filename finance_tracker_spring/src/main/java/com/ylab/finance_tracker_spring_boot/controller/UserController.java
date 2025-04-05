@@ -3,7 +3,7 @@ package com.ylab.finance_tracker_spring_boot.controller;
 import com.ylab.finance_tracker_spring_boot.domain.service.UserService;
 import com.ylab.finance_tracker_spring_boot.dto.UserDTO;
 import com.ylab.finance_tracker_spring_boot.security.AuthService;
-import com.ylab.finance_tracker_spring_boot.annotation.Loggable;
+import com.ylab.logging.annotation.Loggable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +51,9 @@ public class UserController {
     )
     @GetMapping
     public ResponseEntity<UserDTO> showMyProfile() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Principal: " + auth.getPrincipal());
+        System.out.println("Authorities: " + auth.getAuthorities());
         UserDTO user = authService.getCurrentUser();
         return user != null ? ResponseEntity.ok(user) : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
@@ -111,7 +116,6 @@ public class UserController {
             )
             @RequestParam String password)
             throws SQLException {
-        System.out.println("Login start");
         return authService.authenticate(email, password)
                 ? ResponseEntity.ok("Login Successful")
                 : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");

@@ -5,7 +5,7 @@ import com.ylab.finance_tracker_spring_boot.domain.service.TransactionService;
 import com.ylab.finance_tracker_spring_boot.dto.TransactionDTO;
 import com.ylab.finance_tracker_spring_boot.dto.UserDTO;
 import com.ylab.finance_tracker_spring_boot.security.AuthService;
-import com.ylab.finance_tracker_spring_boot.annotation.Loggable;
+import com.ylab.logging.annotation.Loggable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

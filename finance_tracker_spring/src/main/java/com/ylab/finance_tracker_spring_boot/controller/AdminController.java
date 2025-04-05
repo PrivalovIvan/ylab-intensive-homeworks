@@ -1,11 +1,11 @@
 package com.ylab.finance_tracker_spring_boot.controller;
 
-import com.ylab.finance_tracker_spring_boot.annotation.Loggable;
-import com.ylab.finance_tracker_spring_boot.audit_action_users.model.Action;
-import com.ylab.finance_tracker_spring_boot.audit_action_users.repository.UserActionAuditRepository;
+import com.ylab.auditing.model.Action;
+import com.ylab.auditing.repository.UserActionAuditRepository;
 import com.ylab.finance_tracker_spring_boot.domain.service.AdministrationService;
 import com.ylab.finance_tracker_spring_boot.dto.TransactionDTO;
 import com.ylab.finance_tracker_spring_boot.dto.UserDTO;
+import com.ylab.logging.annotation.Loggable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

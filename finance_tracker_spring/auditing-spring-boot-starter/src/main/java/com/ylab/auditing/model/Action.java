@@ -1,4 +1,4 @@
-package com.ylab.finance_tracker_spring_boot.audit_action_users.model;
+package com.ylab.auditing.model;
 
 import lombok.Builder;
 
