@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: finance_tracker_spring
+  datasource:
+    url: jdbc:postgresql://localhost:5433/finance_db
+    username: finance_user
+    password: finance_password
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:db/changelog/changelog.xml
+  mail:
+    host: smtp.yandex.ru
+    port: 465
+    username: mamamia3009@yandex.ru
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+
+token:
+  signing:
+    key: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
+
+
