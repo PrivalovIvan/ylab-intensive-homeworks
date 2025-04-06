@@ -9,6 +9,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 
+import java.sql.SQLException;
 import java.time.Instant;
 
 @Aspect
@@ -20,7 +21,7 @@ public class UserActionAuditAspect {
 
     @AfterReturning("execution(* com.ylab.finance_tracker_spring_boot.service.*.*(..)) " +
             "&& !execution(* com.ylab.finance_tracker_spring_boot.service.UserServiceImpl.findByEmail(..))")
-    public void logAfterReturning(JoinPoint joinPoint) {
+    public void logAfterReturning(JoinPoint joinPoint) throws SQLException {
         String userEmail = currentUserProvider.getCurrentUserIdentifier().orElse("anonymousUser");
         userActionAuditRepository.save(
                 Action.builder()
