@@ -2,6 +2,7 @@ package com.ylab.finance_tracker_spring_boot.security;
 
 import com.ylab.finance_tracker_spring_boot.domain.service.UserService;
 import com.ylab.finance_tracker_spring_boot.dto.UserDTO;
+import com.ylab.finance_tracker_spring_boot.security_canon.JwtService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -15,12 +16,12 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final UserService userService;
     private final HttpSession session;
+    private final JwtService jwtService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public boolean authenticate(String email, String password) throws SQLException {
@@ -30,15 +31,17 @@ public class AuthService {
                         var auth = new CustomAuthentication(user);
                         session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
                         SecurityContextHolder.getContext().setAuthentication(auth);
-                        session.setAttribute("user", user);
+//                        session.setAttribute("user", user);
                         return true;
                     }
                     return false;
                 }).orElse(false);
     }
 
-    public UserDTO getCurrentUser() {
-        return (UserDTO) session.getAttribute("user");
+    public UserDTO getCurrentUser() throws SQLException {
+        String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        UserDTO user = userService.findByEmail(email).orElse(null);
+        return user;
     }
 }
 
